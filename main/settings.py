@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -46,8 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'apps.permissions',
     'rules',
     'rest_framework',
+    'knox'
 ]
 
 MIDDLEWARE = [
@@ -108,6 +110,24 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = 'main.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'apps.permissions.backends.ObjectBackend',
+        'apps.permissions.backends.ModelBackend'
+    ),
+}
+
+
+REST_KNOX = {
+    'TOKEN_LIMIT_PER_USER': 10,
+    'TOKEN_TTL': timedelta(hours=1),
+    'MIN_REFRESH_INTERVAL': 0,
+    'AUTO_REFRESH': True,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
