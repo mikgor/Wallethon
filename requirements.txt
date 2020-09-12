@@ -1,0 +1,11 @@
+pip==20.2.2
+Django==3.1.1
+djangorestframework==3.11.1
+django-environ==0.4.5
+django-currentuser==0.5.1
+python-dateutil==2.8.1
+django-rest-knox==4.1.0
+Faker==4.1.2
+faker-e164==0.1.0
+testfixtures==6.14.1
+rules==2.2

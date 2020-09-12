@@ -1,0 +1,44 @@
+# IDE
+.idea
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+
+*.py[cod]
+*$py.class
+
+# Migrations
+main/migrations
+apps/*/migrations
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Virtualenv
+main/.env
+env/
