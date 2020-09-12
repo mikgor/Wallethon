@@ -5,6 +5,8 @@ from rules.contrib.models import RulesModel
 from django_currentuser.db.models import CurrentUserField
 from uuid import uuid4, UUID
 
+from main.managers import CustomUserManager
+
 
 class BaseModel(RulesModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -28,6 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+
+    objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['password']
