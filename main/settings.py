@@ -47,9 +47,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
     'apps.permissions',
+    'apps.stocks.markets',
+    'apps.stocks.transactions',
     'rules',
     'rest_framework',
-    'knox'
+    'knox',
+    'djmoney',
 ]
 
 MIDDLEWARE = [

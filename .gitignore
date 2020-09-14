@@ -42,3 +42,6 @@ celerybeat.pid
 # Virtualenv
 main/.env
 env/
+
+# Data
+apps/*/utils/*.txt
