@@ -135,12 +135,13 @@ class BaseTestCase(TestCase):
         return stock_transaction
 
     @classmethod
-    def create_user_stock_transaction(cls, user=None, stock_transaction=None, broker_name=None) -> object:
+    def create_user_stock_transaction(cls, user=None, stock_transaction=None, broker_name=None,
+                                      company=None) -> object:
         if user is None:
             user, _ = cls.create_user()
 
         if stock_transaction is None:
-            stock_transaction = cls.create_stock_transaction()
+            stock_transaction = cls.create_stock_transaction(company=company)
 
         if broker_name is None:
             broker_name = cls.faker.company()
@@ -149,7 +150,7 @@ class BaseTestCase(TestCase):
             UserStockTransaction,
             user=user,
             transaction=stock_transaction,
-            broker_name=broker_name,
+            broker_name=broker_name
         )
 
         return user_stock_transaction

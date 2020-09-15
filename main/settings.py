@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.permissions',
     'apps.stocks.markets',
     'apps.stocks.transactions',
+    'apps.stocks.utils',
     'rules',
     'rest_framework',
     'knox',

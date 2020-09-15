@@ -8,8 +8,8 @@ class Market(BaseModel):
 
 
 class Company(BaseModel):
-    name = models.CharField(max_length=255, unique=True)
-    symbol = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=255)
+    symbol = models.CharField(max_length=64)
 
 
 class MarketCompany(BaseModel):
@@ -17,4 +17,5 @@ class MarketCompany(BaseModel):
     company = models.ForeignKey(Company, models.CASCADE)
 
     class Meta:
+        unique_together = [('market', 'company')]
         db_table = "stocks_market_company"
