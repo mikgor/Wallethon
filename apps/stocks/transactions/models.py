@@ -23,8 +23,10 @@ class StockTransaction(BaseModel):
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.01'))])
     per_stock_price = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                                  validators=[MinMoneyValidator(Decimal('0.01'))])
-    commission_and_tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
-                                    validators=[MinMoneyValidator(0)])
+    commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+                            validators=[MinMoneyValidator(0)])
+    tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+                     validators=[MinMoneyValidator(0)])
     total_value = MoneyField(max_digits=14, decimal_places=4, default_currency='USD')
     date = models.DateTimeField()
 

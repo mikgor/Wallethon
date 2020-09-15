@@ -21,4 +21,4 @@ market_company = v.create_market_company(market=market, company=company)
 user_stock_transaction = v.create_user_stock_transaction(user=superuser)
 stock_transaction = StockTransaction.objects.get(pk=user_stock_transaction.transaction.pk)
 print("{s.id} {s.type} {s.company} {s.stock_quantity} {s.per_stock_price} "
-      "{s.commission_and_tax} {s.total_value} {s.date}".format(s=stock_transaction))
+      "{s.commission} {s.tax} {s.total_value} {s.date}".format(s=stock_transaction))
