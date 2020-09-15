@@ -16,12 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyViewSet
 from main.views import LoginView, UserViewSet
 
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
+router.register(r'markets', MarketViewSet, basename='markets')
+router.register(r'companies', CompanyViewSet, basename='companies')
+router.register(r'marketcompanies', MarketCompanyViewSet, basename='marketcompanies')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
