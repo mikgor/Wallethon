@@ -4,8 +4,8 @@ from apps.stocks.utils.utils import get_market_stock_companies
 MARKETS = {'NASDAQ'}
 
 
-def populate_stocks_data(market_name=None, from_file=True):
-    companies = get_market_stock_companies(market_name=market_name, from_file=from_file)
+def populate_stocks_data(market_name=None, from_file=True, file_path=None):
+    companies = get_market_stock_companies(market_name=market_name, from_file=from_file, file_path=file_path)
 
     market = Market.objects.create(name=market_name)
 
@@ -17,3 +17,7 @@ def populate_stocks_data(market_name=None, from_file=True):
 def populate_all_stocks_data():
     for market in MARKETS:
         populate_stocks_data(market_name=market)
+
+
+def populate_market_stocks_data(market_name=None, from_file=True, file_path=None):
+    populate_stocks_data(market_name=market_name, from_file=from_file, file_path=file_path)
