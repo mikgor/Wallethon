@@ -1,8 +1,7 @@
-from random import random, choice, uniform
+from random import choice, uniform
 
 import pytz
 from django.test import TestCase
-from djmoney.money import Money
 
 from apps.stocks.markets.models import Market, Company, MarketCompany
 from apps.stocks.transactions.models import StockTransaction, UserStockTransaction
@@ -101,21 +100,16 @@ class BaseTestCase(TestCase):
     def create_stock_transaction(cls, company=None, transaction_type=None, quantity=0, per_stock_price=0,
                                  commission=0, tax=0, date=None) -> object:
         if transaction_type is None:
-            transaction_type = choice(['BUY', 'SELL'])
+            transaction_type = cls.faker.stock_transaction_type()
 
         if company is None:
             company = cls.create_company()
 
         if quantity <= 0:
-            quantity = round(uniform(0.01, 100), 4)
+            quantity = cls.faker.stock_quantity()
 
         if per_stock_price <= 0:
-            per_stock_price = round(uniform(0.01, 10000), 4)
-
-        total_value = round((quantity*per_stock_price)-(commission+tax), 4)
-
-        if transaction_type == 'SELL':
-            total_value *= -1
+            per_stock_price = cls.faker.per_stock_price()
 
         if date is None:
             date = cls.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE))
@@ -128,7 +122,6 @@ class BaseTestCase(TestCase):
             per_stock_price=per_stock_price,
             commission=commission,
             tax=tax,
-            total_value=total_value,
             date=date
         )
 

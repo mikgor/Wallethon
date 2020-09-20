@@ -15,8 +15,7 @@ media
 *$py.class
 
 # Migrations
-main/migrations
-apps/*/migrations
+migrations
 
 # Unit test / coverage reports
 htmlcov/

@@ -45,15 +45,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
-    'apps.permissions',
-    'apps.stocks.markets',
-    'apps.stocks.transactions',
-    'apps.stocks.utils',
     'rules',
     'rest_framework',
     'knox',
     'djmoney',
+    'main',
+    'apps',
+    'apps.permissions',
+    'apps.stocks',
+    'apps.stocks.markets',
+    'apps.stocks.transactions',
+    'apps.stocks.utils',
 ]
 
 MIDDLEWARE = [
