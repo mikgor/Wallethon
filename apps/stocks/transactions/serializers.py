@@ -1,7 +1,6 @@
 from django.db import transaction
 from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from apps.stocks.transactions.models import StockTransaction, UserStockTransaction
 from main.models import User
@@ -41,6 +40,15 @@ class StockTransactionSerializer(BaseModelSerializer):
         user_stock_transaction.save()
 
         return stock_transaction
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        super().update(instance, validated_data)
+
+        instance.full_clean()
+        instance.save()
+
+        return instance
 
     class Meta:
         model = StockTransaction

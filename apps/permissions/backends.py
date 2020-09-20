@@ -12,7 +12,7 @@ class ModelBackend(ModelBackend):
 class ObjectBackend(ObjectPermissionBackend):
     supports_object_permissions = True
 
-    def has_perm(self, user, perm: str, *args, **kwargs) -> bool:
+    def has_permission(self, user, perm: str, *args, **kwargs) -> bool:
         result = super().has_perm(user, perm, *args, **kwargs)
 
         return result

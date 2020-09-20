@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from faker.providers import BaseProvider
 from random import choice, uniform
 

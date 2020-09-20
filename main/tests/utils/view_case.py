@@ -22,5 +22,9 @@ class ViewTestCase(BaseTestCase):
         return cls.create_client(**kwargs).post(endpoint, data=data, format='json')
 
     @classmethod
+    def put(cls, endpoint, data=None, **kwargs):
+        return cls.create_client(**kwargs).put(endpoint, data=data, format='json')
+
+    @classmethod
     def get(cls, endpoint, data=None, **kwargs):
         return cls.create_client(**kwargs).get(endpoint, data=data, format='json')
