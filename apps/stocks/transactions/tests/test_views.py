@@ -89,7 +89,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(float(update_response.data['per_stock_price']), data['per_stock_price'])
         self.assert_is_total_value_and_currencies_are_correct(update_response.data)
 
-        # Changing currency for per_stock_price, commission, and tax
+        # Changing currency for per_stock_price, commission and tax
         new_currency_code = self.faker.currency_code()
         data['per_stock_price_currency'] = new_currency_code
         data['commission_currency'] = new_currency_code
