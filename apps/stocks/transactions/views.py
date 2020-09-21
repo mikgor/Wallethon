@@ -9,4 +9,9 @@ class StockTransactionViewSet(ProtectedModelViewSet):
     serializer_class = StockTransactionSerializer
 
     def get_queryset(self):
-        return self.model.objects.all()
+        user = self.request.user
+
+        if user.is_superuser:
+            return self.model.objects.all()
+        else:
+            return self.model.objects.filter(user=user)
