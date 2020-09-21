@@ -25,7 +25,4 @@ populate_market_stocks_data(
 
 for i in range(15):
     random_company = Company.objects.order_by('?')[0]
-    stock_transaction = v.create_stock_transaction(company=random_company)
-    user_stock_transaction = v.create_user_stock_transaction(user=superuser, stock_transaction=stock_transaction)
-    print("{s.id} {s.type} {s.company} {s.stock_quantity} {s.per_stock_price} "
-          "{s.commission} {s.tax} {s.total_value} {s.date}".format(s=stock_transaction))
+    stock_transaction = v.create_stock_transaction(user=superuser, company=random_company)

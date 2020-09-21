@@ -10,3 +10,4 @@ faker-e164==0.1.0
 testfixtures==6.14.1
 rules==2.2
 django-money==1.1
+rules==2.2.0

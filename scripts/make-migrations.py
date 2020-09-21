@@ -7,11 +7,13 @@ application = get_wsgi_application()
 
 from django.core.management import call_command
 
-os.chdir('../apps')
+os.chdir("..")
+path = os.getcwd() + '/apps'
 
-apps = ['markets', 'transactions']
-apps = apps + [directory for directory in os.listdir() if os.path.isdir(directory) and directory.find('__')]
+apps = ['main', 'markets', 'transactions']
+apps = apps + [directory for directory in os.listdir(path) if os.path.isdir(directory) and directory.find('__')]
 
 for app in apps:
     call_command('makemigrations', app, interactive=False)
+
 call_command('migrate')

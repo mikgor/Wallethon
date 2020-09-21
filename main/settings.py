@@ -45,17 +45,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rules',
     'rest_framework',
     'knox',
+    'rules',
     'djmoney',
-    'main',
-    'apps',
     'apps.permissions',
     'apps.stocks',
     'apps.stocks.markets',
     'apps.stocks.transactions',
     'apps.stocks.utils',
+    'main',
 ]
 
 MIDDLEWARE = [
@@ -117,16 +116,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'main.User'
 
+AUTHENTICATION_BACKENDS = (
+    'apps.permissions.backends.ObjectBackend',
+    'apps.permissions.backends.ModelBackend',
+)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'knox.auth.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': (
-        'apps.permissions.backends.ObjectBackend',
-        'apps.permissions.backends.ModelBackend'
+        'rest_framework.permissions.IsAuthenticated',
+        'apps.permissions.mixins.ObjectPermissions'
     ),
 }
-
 
 REST_KNOX = {
     'TOKEN_LIMIT_PER_USER': 10,

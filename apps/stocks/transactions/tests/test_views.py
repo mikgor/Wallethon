@@ -30,7 +30,10 @@ class StockTransactionViewSetTestCase(ViewTestCase):
 
         self.assertEqual(float(data['total_value']), total_value)
 
-    def __stock_transaction_data_helper(self):
+    def __stock_transaction_data_helper(self, user=None):
+        if user is None:
+            user = self.superuser
+
         currency_code = self.faker.currency_code()
         data = {
                 "type": self.faker.stock_transaction_type(),
@@ -43,31 +46,36 @@ class StockTransactionViewSetTestCase(ViewTestCase):
                 "tax": self.faker.commission(),
                 "tax_currency": currency_code,
                 "date": self.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE)),
-                "user": self.superuser.id,
+                "user": user.id,
                 "broker_name": self.faker.company()
             }
 
         return data
 
-    def __post_stock_transaction_helper(self):
-        data = self.__stock_transaction_data_helper()
-        response = self.post(
-            f'/api/v1/stocktransactions/',
-            data=data,
-            auth_user=self.superuser)
+    def __stock_transaction_request_helper(self, method_name: str, endpoint: str, data=None, user=None):
+        if user is None:
+            user = self.superuser
 
-        return response
-
-    def __put_stock_transaction_helper(self, transaction_id, data=None):
         if data is None:
-            data = self.__stock_transaction_data_helper()
+            data = self.__stock_transaction_data_helper(user=user)
 
-        response = self.put(
-            f'/api/v1/stocktransactions/{transaction_id}/',
-            data=data,
-            auth_user=self.superuser)
+        method = getattr(self, method_name)
+        response = method(endpoint, data=data, auth_user=user)
 
         return response
+
+    def __post_stock_transaction_helper(self, user=None):
+        return self.__stock_transaction_request_helper(
+            method_name='post',
+            endpoint=f'/api/v1/stocktransactions/',
+            user=user)
+
+    def __put_stock_transaction_helper(self, transaction_id, data=None, user=None):
+        return self.__stock_transaction_request_helper(
+            method_name='put',
+            endpoint=f'/api/v1/stocktransactions/{transaction_id}/',
+            data=data,
+            user=user)
 
     def test_create_stock_transaction(self):
         response = self.__post_stock_transaction_helper()
@@ -76,6 +84,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         compare = operator.gt if transaction_type == "BUY" else operator.lt
 
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['user'], self.superuser.id)
         self.assertTrue(compare(total_value, Decimal('0.00')))
         self.assert_is_total_value_and_currencies_are_correct(response.data)
 
@@ -83,13 +92,14 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         response = self.__post_stock_transaction_helper()
         data = self.__stock_transaction_data_helper()
         data['per_stock_price'] = self.faker.per_stock_price()
+
         update_response = self.__put_stock_transaction_helper(transaction_id=response.data['uuid'], data=data)
 
         self.assertEqual(update_response.status_code, 200)
         self.assertEqual(float(update_response.data['per_stock_price']), data['per_stock_price'])
         self.assert_is_total_value_and_currencies_are_correct(update_response.data)
 
-        # Changing currency for per_stock_price, commission and tax
+        # Update currency for per_stock_price, commission and tax
         new_currency_code = self.faker.currency_code()
         data['per_stock_price_currency'] = new_currency_code
         data['commission_currency'] = new_currency_code
@@ -99,25 +109,40 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(update_response.status_code, 200)
         self.assert_is_total_value_and_currencies_are_correct(update_response.data)
 
-        # Changing currency for per_stock_price
+        # Update currency for per_stock_price
         with self.assertRaises(AssertionError):
             data['per_stock_price_currency'] = self.faker.currency_code()
-            update_response = self.__put_stock_transaction_helper(transaction_id=response.data['uuid'], data=data)
-            self.assertEqual(update_response.status_code, 403)
+            self.__put_stock_transaction_helper(transaction_id=response.data['uuid'], data=data)
 
-    def test_create_stock_transaction_with_user_stock_transaction(self):
-        user_stock_transactions_response = self.__get_user_stock_transactions_helper()
 
-        self.assertEqual(len(user_stock_transactions_response.data), 0)
+    def test_stock_transaction_permissions(self):
+        user1, _ = self.create_user()
+        user2, _ = self.create_user()
 
-        # Creating stock transaction
-        stock_transaction_response = self.__post_stock_transaction_helper()
-        # After creating stock transaction
-        user_stock_transactions_response = self.__get_user_stock_transactions_helper()
+        user1_transaction_response = self.__post_stock_transaction_helper(user=user1)
+        user2_transaction_response = self.__post_stock_transaction_helper(user=user2)
 
-        self.assertEqual(user_stock_transactions_response.status_code, 200)
-        self.assertEqual(len(user_stock_transactions_response.data), 1)
-        self.assertEqual(user_stock_transactions_response.data[0]['user'], self.superuser.id)
-        self.assertEqual(user_stock_transactions_response.data[0]['transaction'],
-                         stock_transaction_response.data['uuid'])
+        # user1 updating own transaction
+        user1_own_transaction_put_response = self.__put_stock_transaction_helper(
+            transaction_id=user1_transaction_response.data['uuid'], user=user1)
+        self.assertEqual(user1_own_transaction_put_response.status_code, 200)
 
+        # user2 updating own transaction
+        user2_own_transaction_put_response = self.__put_stock_transaction_helper(
+            transaction_id=user2_transaction_response.data['uuid'], user=user2)
+        self.assertEqual(user2_own_transaction_put_response.status_code, 200)
+
+        # user1 updating user2's transaction
+        user1_transaction_put_response = self.__put_stock_transaction_helper(
+            transaction_id=user2_transaction_response.data['uuid'], user=user1)
+        self.assertEqual(user1_transaction_put_response.status_code, 404)
+
+        # user2 updating user1's transaction
+        user2_transaction_put_response = self.__put_stock_transaction_helper(
+            transaction_id=user1_transaction_response.data['uuid'], user=user2)
+        self.assertEqual(user1_transaction_put_response.status_code, 404)
+
+        # superuser can update user1's transaction
+        superuser_transaction_put_response = self.__put_stock_transaction_helper(
+            transaction_id=user1_transaction_response.data['uuid'], user=self.superuser)
+        self.assertEqual(superuser_transaction_put_response.status_code, 200)

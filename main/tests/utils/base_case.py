@@ -1,10 +1,8 @@
-from random import choice, uniform
-
 import pytz
 from django.test import TestCase
 
 from apps.stocks.markets.models import Market, Company, MarketCompany
-from apps.stocks.transactions.models import StockTransaction, UserStockTransaction
+from apps.stocks.transactions.models import StockTransaction
 from main.models import User
 from main.settings import TIME_ZONE
 from main.tests.faker import faker
@@ -98,7 +96,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def create_stock_transaction(cls, company=None, transaction_type=None, quantity=0, per_stock_price=0,
-                                 commission=0, tax=0, date=None) -> object:
+                                 commission=0, tax=0, date=None, user=None, broker_name=None) -> object:
         if transaction_type is None:
             transaction_type = cls.faker.stock_transaction_type()
 
@@ -114,6 +112,12 @@ class BaseTestCase(TestCase):
         if date is None:
             date = cls.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE))
 
+        if user is None:
+            user, _ = cls.create_user()
+
+        if broker_name is None:
+            broker_name = cls.faker.company()
+
         stock_transaction = cls._create_model_instance(
             StockTransaction,
             type=transaction_type,
@@ -122,27 +126,9 @@ class BaseTestCase(TestCase):
             per_stock_price=per_stock_price,
             commission=commission,
             tax=tax,
-            date=date
-        )
-
-        return stock_transaction
-
-    @classmethod
-    def create_user_stock_transaction(cls, user=None, stock_transaction=None, broker_name=None) -> object:
-        if user is None:
-            user, _ = cls.create_user()
-
-        if stock_transaction is None:
-            stock_transaction = cls.create_stock_transaction()
-
-        if broker_name is None:
-            broker_name = cls.faker.company()
-
-        user_stock_transaction = cls._create_model_instance(
-            UserStockTransaction,
+            date=date,
             user=user,
-            transaction=stock_transaction,
             broker_name=broker_name
         )
 
-        return user_stock_transaction
+        return stock_transaction

@@ -5,9 +5,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from djmoney.models.fields import MoneyField
 from djmoney.models.validators import MinMoneyValidator
-from moneyed import Money
 
 from apps.stocks.markets.models import Company
+from main import rules
 from main.models import BaseModel, User
 
 
@@ -30,6 +30,16 @@ class StockTransaction(BaseModel):
                      validators=[MinMoneyValidator(0)])
     total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
     date = models.DateTimeField()
+    user = models.ForeignKey(User, models.CASCADE)
+    broker_name = models.CharField(max_length=64)
+
+    class Meta:
+        rules_permissions = {
+            "view": rules.is_object_owner,
+            "add": rules.is_authenticated,
+            "change": rules.is_object_owner,
+            "delete": rules.is_object_owner
+        }
 
     def clean(self):
         assert self.per_stock_price.currency == self.commission.currency == self.tax.currency, \
@@ -47,12 +57,3 @@ class StockTransaction(BaseModel):
 
         if self.type == self.TRANSACTION_TYPE_BUY and self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Buy transaction total value must be positive.'})
-
-
-class UserStockTransaction(BaseModel):
-    transaction = models.ForeignKey(StockTransaction, models.CASCADE)
-    user = models.ForeignKey(User, models.CASCADE)
-    broker_name = models.CharField(max_length=64)
-
-    class Meta:
-        db_table = "stocks_user_stock_transaction"

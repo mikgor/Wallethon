@@ -4,8 +4,7 @@ from faker.providers.person.pl_PL import Provider as PersonProvider
 from faker.providers.company.pl_PL import Provider as CompanyProvider
 from faker.providers.lorem.en_US import Provider as LoremProvider
 from faker.providers.date_time.en_US import Provider as DateProvider
-from faker.providers.currency.en_US import Provider as CurrencyProvider
-from main.tests.faker.providers import StockTransactionProvider
+from main.tests.faker.providers import StockTransactionProvider, CurrencyProvider
 
 Faker.seed(123)
 

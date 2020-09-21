@@ -1,7 +1,13 @@
-from decimal import Decimal
-
+from djmoney.settings import CURRENCY_CHOICES
 from faker.providers import BaseProvider
 from random import choice, uniform
+
+
+class CurrencyProvider(BaseProvider):
+    def currency_code(self):
+        currency_code, _ = choice(CURRENCY_CHOICES)
+
+        return currency_code
 
 
 class StockTransactionProvider(BaseProvider):
