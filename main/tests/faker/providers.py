@@ -26,4 +26,4 @@ class StockTransactionProvider(BaseProvider):
 
 class DividendTransactionProvider(BaseProvider):
     def dividend(self):
-        return round(uniform(10, 100), 4)
+        return round(uniform(100, 1000), 4)
