@@ -86,7 +86,6 @@ class DividendTransactionSerializer(BaseModelSerializer):
         model = DividendTransaction
         fields = [
             'uuid',
-            'type',
             'company',
             'dividend',
             'dividend_currency',

@@ -61,7 +61,8 @@ class StockTransaction(BaseModel):
 
 class DividendTransaction(BaseModel):
     company = models.ForeignKey(Company, models.CASCADE)
-    dividend = models.FloatField(validators=[MinValueValidator(Decimal('0.01'))])
+    dividend = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+                          validators=[MinMoneyValidator(Decimal('0.01'))])
     commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                             validators=[MinMoneyValidator(0)])
     tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
