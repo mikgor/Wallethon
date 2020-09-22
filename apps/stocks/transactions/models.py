@@ -21,7 +21,7 @@ class StockTransaction(BaseModel):
 
     type = models.CharField(max_length=30, choices=TRANSACTION_TYPE_CHOICES)
     company = models.ForeignKey(Company, models.CASCADE)
-    stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.01'))])
+    stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     per_stock_price = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                                  validators=[MinMoneyValidator(Decimal('0.01'))])
     commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
@@ -90,3 +90,4 @@ class CashDividendTransaction(BaseModel):
 
         if self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Dividend transaction total value must be positive.'})
+
