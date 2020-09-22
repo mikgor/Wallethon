@@ -11,3 +11,4 @@ testfixtures==6.14.1
 rules==2.2
 django-money==1.1
 rules==2.2.0
+requests==2.24.0
