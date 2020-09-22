@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyViewSet
-from apps.stocks.transactions.views import StockTransactionViewSet
+from apps.stocks.transactions.views import StockTransactionViewSet, DividendTransactionViewSet
 from main.views import LoginView, UserViewSet
 
 from rest_framework.routers import DefaultRouter
@@ -28,6 +28,7 @@ router.register(r'markets', MarketViewSet, basename='markets')
 router.register(r'companies', CompanyViewSet, basename='companies')
 router.register(r'marketcompanies', MarketCompanyViewSet, basename='marketcompanies')
 router.register(r'stocktransactions', StockTransactionViewSet, basename='stocktransactions')
+router.register(r'dividendtransactions', DividendTransactionViewSet, basename='dividendtransactions')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

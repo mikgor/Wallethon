@@ -57,3 +57,35 @@ class StockTransaction(BaseModel):
 
         if self.type == self.TRANSACTION_TYPE_BUY and self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Buy transaction total value must be positive.'})
+
+
+class DividendTransaction(BaseModel):
+    company = models.ForeignKey(Company, models.CASCADE)
+    dividend = models.FloatField(validators=[MinValueValidator(Decimal('0.01'))])
+    commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+                            validators=[MinMoneyValidator(0)])
+    tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+                     validators=[MinMoneyValidator(0)])
+    total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
+    date = models.DateTimeField()
+    user = models.ForeignKey(User, models.CASCADE)
+    broker_name = models.CharField(max_length=64)
+
+    class Meta:
+        rules_permissions = {
+            "view": rules.is_object_owner,
+            "add": rules.is_authenticated,
+            "change": rules.is_object_owner,
+            "delete": rules.is_object_owner
+        }
+
+    def clean(self):
+        assert self.dividend.currency == self.commission.currency == self.tax.currency, \
+                'Currencies must be the same'
+
+        total_value = round(self.dividend - (self.commission + self.tax), 4)
+
+        self.total_value = total_value
+
+        if self.total_value.amount <= Decimal('0.00'):
+            raise ValidationError({'total_value': 'Dividend transaction total value must be positive.'})
