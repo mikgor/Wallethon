@@ -1,5 +1,5 @@
 from apps.stocks.markets.models import Market, Company, MarketCompany
-from apps.stocks.utils.utils import get_market_stock_companies
+from apps.stocks.markets.utils.utils import get_market_stock_companies
 
 MARKETS = {'NASDAQ'}
 

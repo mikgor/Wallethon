@@ -2,7 +2,7 @@ import ftplib
 
 FTP_SERVER = 'ftp.nasdaqtrader.com'
 FTP_FILE_PATH = 'SymbolDirectory/nasdaqlisted.txt'
-DESTINATION_FILE_NAME = 'apps/stocks/utils/data/nasdaq_stocks.txt'
+DESTINATION_FILE_NAME = 'apps/stocks/markets/utils/data/nasdaq_stocks.txt'
 
 
 def download_stock_companies_data():

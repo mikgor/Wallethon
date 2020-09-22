@@ -43,4 +43,4 @@ main/.env
 env/
 
 # Data
-apps/*/utils/data/*
+apps/**/data
