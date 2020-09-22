@@ -6,6 +6,7 @@ from django_currentuser.db.models import CurrentUserField
 from uuid import uuid4, UUID
 
 from main.managers import CustomUserManager
+from main.utils import formatted_date
 
 
 class BaseModel(RulesModel):
@@ -18,7 +19,7 @@ class BaseModel(RulesModel):
         return self.id
 
     def formatted_date(self, field):
-        return getattr(self, field).isoformat()[:-6] + 'Z'
+        return formatted_date(getattr(self, field))
 
     class Meta:
         default_permissions = ('view', 'add', 'change', 'delete')

@@ -91,3 +91,18 @@ class CashDividendTransaction(BaseModel):
         if self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Dividend transaction total value must be positive.'})
 
+
+class StockDividendTransaction(BaseModel):
+    company = models.ForeignKey(Company, models.CASCADE)
+    stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
+    date = models.DateTimeField()
+    user = models.ForeignKey(User, models.CASCADE)
+    broker_name = models.CharField(max_length=64)
+
+    class Meta:
+        rules_permissions = {
+            "view": rules.is_object_owner,
+            "add": rules.is_authenticated,
+            "change": rules.is_object_owner,
+            "delete": rules.is_object_owner
+        }

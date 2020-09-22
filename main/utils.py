@@ -10,3 +10,7 @@ def datetime_now() -> datetime:
         now = datetime.now()
 
     return now
+
+
+def formatted_date(date):
+    return date.isoformat()[:-6] + 'Z'

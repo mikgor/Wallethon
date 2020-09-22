@@ -2,7 +2,7 @@ import pytz
 from django.test import TestCase
 
 from apps.stocks.markets.models import Market, Company, MarketCompany
-from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction
+from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction
 from main.models import User
 from main.settings import TIME_ZONE
 from main.tests.faker import faker
@@ -163,3 +163,33 @@ class BaseTestCase(TestCase):
         )
 
         return cash_dividend_transaction
+
+
+    @classmethod
+    def create_stock_dividend_transaction(cls, company=None, stock_quantity=0,
+                                          date=None, user=None, broker_name=None) -> object:
+        if company is None:
+            company = cls.create_company()
+
+        if stock_quantity <= 0:
+            stock_quantity = cls.faker.stock_quantity()
+
+        if date is None:
+            date = cls.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE))
+
+        if user is None:
+            user, _ = cls.create_user()
+
+        if broker_name is None:
+            broker_name = cls.faker.company()
+
+        stock_dividend_transaction = cls._create_model_instance(
+            StockDividendTransaction,
+            company=company,
+            stock_quantity=stock_quantity,
+            date=date,
+            user=user,
+            broker_name=broker_name
+        )
+
+        return stock_dividend_transaction
