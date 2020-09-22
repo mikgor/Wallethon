@@ -138,7 +138,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(len(user2_set_response.data), 2)
 
 
-class DividendTransactionViewSetTestCase(ViewTestCase):
+class CashDividendTransactionViewSetTestCase(ViewTestCase):
     def setUp(self):
         super().setUp()
         self.superuser, _ = self.create_superuser()
@@ -151,7 +151,7 @@ class DividendTransactionViewSetTestCase(ViewTestCase):
 
         self.assertEqual(float(data['total_value']), total_value)
 
-    def __dividend_transaction_data_helper(self, user=None):
+    def __cash_dividend_transaction_data_helper(self, user=None):
         if user is None:
             user = self.superuser
 
@@ -171,9 +171,9 @@ class DividendTransactionViewSetTestCase(ViewTestCase):
 
         return data
 
-    def test_create_dividend_transaction(self):
-        response = self.post(endpoint='/api/v1/dividendtransactions/',
-                             data=self.__dividend_transaction_data_helper(), auth_user=self.superuser)
+    def test_create_cash_dividend_transaction(self):
+        response = self.post(endpoint='/api/v1/cashdividendtransactions/',
+                             data=self.__cash_dividend_transaction_data_helper(), auth_user=self.superuser)
 
         total_value = Decimal(response.data['total_value'])
 
@@ -182,22 +182,22 @@ class DividendTransactionViewSetTestCase(ViewTestCase):
         self.assertTrue(total_value >= Decimal('0.00'))
         self.assert_is_total_value_and_currencies_are_correct(response.data)
 
-        data = self.__dividend_transaction_data_helper()
+        data = self.__cash_dividend_transaction_data_helper()
         data['dividend'] = 0.4
         data['commission'] = 0.0
         data['tax'] = 0.1
-        response = self.post(endpoint='/api/v1/dividendtransactions/', data=data, auth_user=self.superuser)
+        response = self.post(endpoint='/api/v1/cashdividendtransactions/', data=data, auth_user=self.superuser)
 
         self.assertEqual(Decimal(response.data['total_value']), Decimal('0.3'))
 
-    def test_update_dividend_transaction(self):
-        response = self.post(endpoint='/api/v1/dividendtransactions/',
-                             data=self.__dividend_transaction_data_helper(), auth_user=self.superuser)
+    def test_update_cash_dividend_transaction(self):
+        response = self.post(endpoint='/api/v1/cashdividendtransactions/',
+                             data=self.__cash_dividend_transaction_data_helper(), auth_user=self.superuser)
 
-        data = self.__dividend_transaction_data_helper()
+        data = self.__cash_dividend_transaction_data_helper()
         data['dividend'] = self.faker.dividend()
 
-        update_response = self.put(endpoint='/api/v1/dividendtransactions/{id}/'.format(id=response.data['uuid']),
+        update_response = self.put(endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=response.data['uuid']),
                                    data=data, auth_user=self.superuser)
 
         self.assertEqual(update_response.status_code, 200)
@@ -209,7 +209,7 @@ class DividendTransactionViewSetTestCase(ViewTestCase):
         data['dividend_currency'] = new_currency_code
         data['commission_currency'] = new_currency_code
         data['tax_currency'] = new_currency_code
-        update_response = self.put(endpoint='/api/v1/dividendtransactions/{id}/'.format(id=response.data['uuid']),
+        update_response = self.put(endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=response.data['uuid']),
                                    data=data, auth_user=self.superuser)
 
         self.assertEqual(update_response.status_code, 200)
@@ -218,40 +218,40 @@ class DividendTransactionViewSetTestCase(ViewTestCase):
         # Update currency for dividend
         with self.assertRaises(AssertionError):
             data['dividend_currency'] = self.faker.currency_code()
-            self.put(endpoint='/api/v1/dividendtransactions/{id}/'.format(id=response.data['uuid']),
+            self.put(endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=response.data['uuid']),
                      data=data, auth_user=self.superuser)
 
-    def test_dividend_transaction_permissions(self):
+    def test_cash_dividend_transaction_permissions(self):
         user1, _ = self.create_user()
         user2, _ = self.create_user()
 
-        user1_transaction_response = self.post(endpoint='/api/v1/dividendtransactions/',
-                                               data=self.__dividend_transaction_data_helper(user=user1),
+        user1_transaction_response = self.post(endpoint='/api/v1/cashdividendtransactions/',
+                                               data=self.__cash_dividend_transaction_data_helper(user=user1),
                                                auth_user=user1)
-        user2_transaction_response = self.post(endpoint='/api/v1/dividendtransactions/',
-                                               data=self.__dividend_transaction_data_helper(user=user2),
+        user2_transaction_response = self.post(endpoint='/api/v1/cashdividendtransactions/',
+                                               data=self.__cash_dividend_transaction_data_helper(user=user2),
                                                auth_user=user2)
 
         # User1 updating own transaction
         user1_own_transaction_put_response = self.put(
-            endpoint='/api/v1/dividendtransactions/{id}/'.format(id=user1_transaction_response.data['uuid']),
-            data=self.__dividend_transaction_data_helper(user=user1), auth_user=user1)
+            endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=user1_transaction_response.data['uuid']),
+            data=self.__cash_dividend_transaction_data_helper(user=user1), auth_user=user1)
         self.assertEqual(user1_own_transaction_put_response.status_code, 200)
 
         # User2 updating user1's transaction
         user2_transaction_put_response = self.put(
-            endpoint='/api/v1/dividendtransactions/{id}/'.format(id=user1_transaction_response.data['uuid']),
-            data=self.__dividend_transaction_data_helper(user=user2), auth_user=user2)
+            endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=user1_transaction_response.data['uuid']),
+            data=self.__cash_dividend_transaction_data_helper(user=user2), auth_user=user2)
         self.assertEqual(user2_transaction_put_response.status_code, 404)
 
         # Superuser can update user2's transaction
         superuser_transaction_put_response = self.put(
-            endpoint='/api/v1/dividendtransactions/{id}/'.format(id=user2_transaction_response.data['uuid']),
-            data=self.__dividend_transaction_data_helper(), auth_user=self.superuser)
+            endpoint='/api/v1/cashdividendtransactions/{id}/'.format(id=user2_transaction_response.data['uuid']),
+            data=self.__cash_dividend_transaction_data_helper(), auth_user=self.superuser)
         self.assertEqual(superuser_transaction_put_response.status_code, 200)
 
         # Each user can access only own transactions
-        user1_set_response = self.get(endpoint='/api/v1/dividendtransactions/', auth_user=user1)
-        user2_set_response = self.get(endpoint='/api/v1/dividendtransactions/', auth_user=user2)
+        user1_set_response = self.get(endpoint='/api/v1/cashdividendtransactions/', auth_user=user1)
+        user2_set_response = self.get(endpoint='/api/v1/cashdividendtransactions/', auth_user=user2)
         self.assertEqual(len(user1_set_response.data), 1)
         self.assertEqual(len(user2_set_response.data), 0)

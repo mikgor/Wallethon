@@ -1,5 +1,5 @@
-from apps.stocks.transactions.models import StockTransaction, DividendTransaction
-from apps.stocks.transactions.serializers import StockTransactionSerializer, DividendTransactionSerializer
+from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction
+from apps.stocks.transactions.serializers import StockTransactionSerializer, CashDividendTransactionSerializer
 from main.views import ProtectedModelViewSet
 
 
@@ -17,10 +17,10 @@ class StockTransactionViewSet(ProtectedModelViewSet):
             return self.model.objects.filter(user=user)
 
 
-class DividendTransactionViewSet(ProtectedModelViewSet):
-    model = DividendTransaction
+class CashDividendTransactionViewSet(ProtectedModelViewSet):
+    model = CashDividendTransaction
     queryset = model.objects.none()
-    serializer_class = DividendTransactionSerializer
+    serializer_class = CashDividendTransactionSerializer
 
     def get_queryset(self):
         user = self.request.user

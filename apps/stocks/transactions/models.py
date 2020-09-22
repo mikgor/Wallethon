@@ -59,7 +59,7 @@ class StockTransaction(BaseModel):
             raise ValidationError({'total_value': 'Buy transaction total value must be positive.'})
 
 
-class DividendTransaction(BaseModel):
+class CashDividendTransaction(BaseModel):
     company = models.ForeignKey(Company, models.CASCADE)
     dividend = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                           validators=[MinMoneyValidator(Decimal('0.01'))])

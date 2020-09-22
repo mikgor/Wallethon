@@ -2,7 +2,7 @@ from django.db import transaction
 from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
 
-from apps.stocks.transactions.models import StockTransaction, DividendTransaction
+from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction
 from main.models import User
 from main.serializers.base import BaseModelSerializer
 
@@ -55,7 +55,7 @@ class StockTransactionSerializer(BaseModelSerializer):
         ]
 
 
-class DividendTransactionSerializer(BaseModelSerializer):
+class CashDividendTransactionSerializer(BaseModelSerializer):
     total_value = MoneyField(max_digits=14, decimal_places=4, read_only=True)
     total_value_currency = serializers.CharField(read_only=True, allow_null=True)
     dividend = MoneyField(max_digits=14, decimal_places=4)
@@ -83,7 +83,7 @@ class DividendTransactionSerializer(BaseModelSerializer):
         return instance
 
     class Meta:
-        model = DividendTransaction
+        model = CashDividendTransaction
         fields = [
             'uuid',
             'company',
