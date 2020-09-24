@@ -106,3 +106,15 @@ class StockDividendTransaction(BaseModel):
             "change": rules.is_object_owner,
             "delete": rules.is_object_owner
         }
+
+
+class StockSplitTransaction(BaseModel):
+    company = models.ForeignKey(Company, models.CASCADE)
+    exchange_ratio_from = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
+    exchange_ratio_for = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
+    optional = models.BooleanField(default=False)
+    pay_date = models.DateField()
+
+    class Meta:
+        unique_together = [('company', 'pay_date', 'exchange_ratio_from', 'exchange_ratio_for')]
+        db_table = "stocks_transaction_stock_split_transaction"
