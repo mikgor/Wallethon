@@ -2,7 +2,8 @@ import pytz
 from django.test import TestCase
 
 from apps.stocks.markets.models import Market, Company, MarketCompany
-from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction
+from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
+    StockSplitTransaction
 from main.models import User
 from main.settings import TIME_ZONE
 from main.tests.faker import faker
@@ -164,7 +165,6 @@ class BaseTestCase(TestCase):
 
         return cash_dividend_transaction
 
-
     @classmethod
     def create_stock_dividend_transaction(cls, company=None, stock_quantity=0,
                                           date=None, user=None, broker_name=None) -> object:
@@ -193,3 +193,32 @@ class BaseTestCase(TestCase):
         )
 
         return stock_dividend_transaction
+
+    @classmethod
+    def create_stock_split_transaction(cls, company=None, exchange_ratio_from=0,
+                                       exchange_ratio_for=0, optional=None, pay_date=None) -> object:
+        if company is None:
+            company = cls.create_company()
+
+        if exchange_ratio_from <= 0:
+            exchange_ratio_from = cls.faker.exchange_ratio()
+
+        if exchange_ratio_for <= 0:
+            exchange_ratio_for = cls.faker.exchange_ratio()
+
+        if optional is None:
+            optional = cls.faker.boolean()
+
+        if pay_date is None:
+            pay_date = cls.faker.date()
+
+        stock_split_transaction = cls._create_model_instance(
+            StockSplitTransaction,
+            company=company,
+            exchange_ratio_from=exchange_ratio_from,
+            exchange_ratio_for=exchange_ratio_for,
+            optional=optional,
+            pay_date=pay_date
+        )
+
+        return stock_split_transaction

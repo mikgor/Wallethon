@@ -27,3 +27,8 @@ class StockTransactionProvider(BaseProvider):
 class DividendTransactionProvider(BaseProvider):
     def dividend(self):
         return round(uniform(100, 1000), 4)
+
+
+class StockSplitTransactionProvider(BaseProvider):
+    def exchange_ratio(self):
+        return round(uniform(0.0000001, 1000), 7)

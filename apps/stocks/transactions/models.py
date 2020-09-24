@@ -118,3 +118,9 @@ class StockSplitTransaction(BaseModel):
     class Meta:
         unique_together = [('company', 'pay_date', 'exchange_ratio_from', 'exchange_ratio_for')]
         db_table = "stocks_transaction_stock_split_transaction"
+        rules_permissions = {
+            "view": rules.is_authenticated,
+            "add": rules.is_superuser,
+            "change": rules.is_superuser,
+            "delete": rules.is_superuser
+        }

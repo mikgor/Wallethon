@@ -2,7 +2,8 @@ from django.db import transaction
 from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
 
-from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction
+from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
+    StockSplitTransaction
 from main.models import User
 from main.serializers.base import BaseModelSerializer
 
@@ -114,4 +115,18 @@ class StockDividendTransactionSerializer(BaseModelSerializer):
             'date',
             'user',
             'broker_name'
+        ]
+
+
+class StockSplitTransactionSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = StockSplitTransaction
+        fields = [
+            'uuid',
+            'company',
+            'exchange_ratio_from',
+            'exchange_ratio_for',
+            'optional',
+            'pay_date'
         ]

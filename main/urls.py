@@ -18,7 +18,7 @@ from django.urls import path, include
 
 from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyViewSet
 from apps.stocks.transactions.views import StockTransactionViewSet, CashDividendTransactionViewSet, \
-    StockDividendTransactionViewSet
+    StockDividendTransactionViewSet, StockSplitTransactionViewSet
 from main.views import LoginView, UserViewSet
 
 from rest_framework.routers import DefaultRouter
@@ -31,6 +31,7 @@ router.register(r'marketcompanies', MarketCompanyViewSet, basename='marketcompan
 router.register(r'stocktransactions', StockTransactionViewSet, basename='stocktransactions')
 router.register(r'cashdividendtransactions', CashDividendTransactionViewSet, basename='cashdividendtransactions')
 router.register(r'stockdividendtransactions', StockDividendTransactionViewSet, basename='stocktdividendtransactions')
+router.register(r'stocksplittransactions', StockSplitTransactionViewSet, basename='stocksplittransactions')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -301,3 +301,45 @@ class StockDividendTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(update_response.status_code, 200)
         self.assertEqual(float(update_response.data['stock_quantity']), data['stock_quantity'])
 
+
+class StockSplitTransactionViewSetTestCase(ViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.superuser, _ = self.create_superuser()
+
+    def __stock_split_transaction_data_helper(self):
+        data = {
+                'company': self.create_company().id,
+                'exchange_ratio_from': self.faker.exchange_ratio(),
+                'exchange_ratio_for': self.faker.exchange_ratio(),
+                'optional': self.faker.boolean(),
+                'pay_date': self.faker.date()
+            }
+
+        return data
+
+    def test_create_stock_split_transaction(self):
+        data = self.__stock_split_transaction_data_helper()
+        response = self.post(endpoint='/api/v1/stocksplittransactions/', data=data, auth_user=self.superuser)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['company'], data['company'])
+        self.assertEqual(response.data['exchange_ratio_from'], data['exchange_ratio_from'])
+        self.assertEqual(response.data['exchange_ratio_for'], data['exchange_ratio_for'])
+        self.assertEqual(response.data['optional'], data['optional'])
+        self.assertEqual(response.data['pay_date'], data['pay_date'])
+
+    def test_update_stock_split_transaction(self):
+        response = self.post(endpoint='/api/v1/stocksplittransactions/',
+                             data=self.__stock_split_transaction_data_helper(), auth_user=self.superuser)
+
+        data = self.__stock_split_transaction_data_helper()
+        data['exchange_ratio_from'] = self.faker.exchange_ratio()
+        data['exchange_ratio_for'] = self.faker.exchange_ratio()
+
+        update_response = self.put(endpoint='/api/v1/stocksplittransactions/{id}/'.format(id=response.data['uuid']),
+                                   data=data, auth_user=self.superuser)
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(float(update_response.data['exchange_ratio_from']), data['exchange_ratio_from'])
+        self.assertEqual(float(update_response.data['exchange_ratio_for']), data['exchange_ratio_for'])

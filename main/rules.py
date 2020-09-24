@@ -21,3 +21,4 @@ def is_self(user,  obj):
 is_self_or_superuser = is_not_none & (is_self | is_superuser)
 is_object_owner = is_not_none & is_object_owner
 is_authenticated = is_authenticated
+is_superuser = is_superuser
