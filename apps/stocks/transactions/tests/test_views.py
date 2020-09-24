@@ -341,5 +341,33 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
                                    data=data, auth_user=self.superuser)
 
         self.assertEqual(update_response.status_code, 200)
-        self.assertEqual(float(update_response.data['exchange_ratio_from']), data['exchange_ratio_from'])
-        self.assertEqual(float(update_response.data['exchange_ratio_for']), data['exchange_ratio_for'])
+        self.assertEqual(update_response.data['exchange_ratio_from'], data['exchange_ratio_from'])
+        self.assertEqual(update_response.data['exchange_ratio_for'], data['exchange_ratio_for'])
+
+    def test_update_stock_split_transaction_permissions(self):
+        user, _ = self.create_user()
+
+        response = self.post(endpoint='/api/v1/stocksplittransactions/',
+                             data=self.__stock_split_transaction_data_helper(), auth_user=self.superuser)
+
+        self.assertEqual(response.status_code, 201)
+
+        superuser_get_response = self.get(endpoint='/api/v1/stocksplittransactions/',
+                                          data=self.__stock_split_transaction_data_helper(), auth_user=self.superuser)
+
+        user_get_response = self.get(endpoint='/api/v1/stocksplittransactions/',
+                                     data=self.__stock_split_transaction_data_helper(), auth_user=user)
+
+        self.assertEqual(superuser_get_response.status_code, 200)
+        self.assertEqual(user_get_response.status_code, 200)
+
+        user_put_response = self.put(
+            endpoint='/api/v1/stocksplittransactions/{id}/'.format(id=response.data['uuid']),
+            data=self.__stock_split_transaction_data_helper(), auth_user=user)
+
+        superuser_put_response = self.put(
+            endpoint='/api/v1/stocksplittransactions/{id}/'.format(id=response.data['uuid']),
+            data=self.__stock_split_transaction_data_helper(), auth_user=self.superuser)
+
+        self.assertEqual(user_put_response.status_code, 403)
+        self.assertEqual(superuser_put_response.status_code, 200)
