@@ -14,11 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, include
 
 from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyViewSet
 from apps.stocks.transactions.views import StockTransactionViewSet, CashDividendTransactionViewSet, \
     StockDividendTransactionViewSet, StockSplitTransactionViewSet
+from frontend.views import home_view
 from main.views import LoginView, UserViewSet
 
 from rest_framework.routers import DefaultRouter
@@ -34,7 +36,8 @@ router.register(r'stockdividendtransactions', StockDividendTransactionViewSet, b
 router.register(r'stocksplittransactions', StockSplitTransactionViewSet, basename='stocksplittransactions')
 
 urlpatterns = [
+    path('', home_view),
     path('admin/', admin.site.urls),
     path('api/v1/login/', LoginView.as_view(), name='login'),
     path('api/v1/', include(router.urls)),
-]
+] + staticfiles_urlpatterns()

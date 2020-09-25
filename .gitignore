@@ -44,3 +44,9 @@ env/
 
 # Data
 apps/**/data
+
+## Angluar
+**/node_modules
+frontend/package-lock.json
+frontend/static/*
+/static/*
