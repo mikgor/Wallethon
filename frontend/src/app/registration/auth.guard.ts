@@ -4,7 +4,7 @@ import {AuthService} from './services/auth.service';
 import {
   DEFAULT_ROUTE_PERMISSION,
   DEFAULT_ROUTE_REDIRECT,
-  PermissionRuleRedirect,
+  PERMISSIONS_RULE_REDIRECTS,
   ROUTES_PERMISSIONS
 } from '../routes-config';
 
@@ -20,7 +20,7 @@ export class AuthGuardService implements CanActivate, CanActivateChild {
     const routeAccessConfig = ROUTES_PERMISSIONS.find(x => x.route === url);
     const rule = routeAccessConfig ? routeAccessConfig.rule : DEFAULT_ROUTE_PERMISSION;
     if (!this.authService.userHasAccess(rule)) {
-      const redirect = PermissionRuleRedirect.find(x => x.rule === rule);
+      const redirect = PERMISSIONS_RULE_REDIRECTS.find(x => x.rule === rule);
       const redirectRoute = redirect ? redirect.redirect : DEFAULT_ROUTE_REDIRECT;
       this.router.navigate([`/${redirectRoute}`], { queryParams: { retUrl: route.url} });
       return false;

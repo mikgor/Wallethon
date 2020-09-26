@@ -17,7 +17,7 @@ export enum PermissionRule {
   Authenticated
 }
 
-export const PermissionRuleRedirect = [
+export const PERMISSIONS_RULE_REDIRECTS = [
   {rule: PermissionRule.Authenticated, redirect: APP_ROUTES.login},
   {rule: PermissionRule.Anonymous, redirect: APP_ROUTES.dashboard},
 ];
