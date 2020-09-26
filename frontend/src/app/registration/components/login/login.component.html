@@ -1,0 +1,22 @@
+<mat-card>
+  <mat-card-title>Login</mat-card-title>
+  <mat-card-content>
+<form role="form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+<p><mat-error *ngIf="invalidCredentials" class="mat-warn">Invalid email or password</mat-error>
+</p>
+<p>
+  <mat-form-field appearance="outline">
+    <mat-label>Email</mat-label>
+    <input matInput formControlName="email" class="form-control" placeholder="Email"/>
+  </mat-form-field>
+</p>
+<p>
+  <mat-form-field appearance="outline">
+    <mat-label>Password</mat-label>
+    <input matInput formControlName="password" class="form-control" placeholder="Password" type="password"/>
+  </mat-form-field>
+</p>
+<button mat-raised-button [disabled]="loading" color="primary" type="submit">Login</button>
+</form>
+</mat-card-content>
+</mat-card>

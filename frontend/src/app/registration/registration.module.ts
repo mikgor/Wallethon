@@ -5,20 +5,26 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';
 import {RegistrationRoutes} from './registration.routing';
 import {RegistrationComponent} from './components/registration/registration/registration.component';
+import { LoginComponent } from './components/login/login.component';
+import {MatInputModule} from '@angular/material/input';
+import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
-    imports: [
-        CommonModule,
-        HttpClientModule,
-        FormsModule,
-        ReactiveFormsModule,
-        RouterModule.forChild(RegistrationRoutes),
-    ],
-    declarations: [
-        RegistrationComponent,
-    ],
-    exports: [
-    ],
-    providers: []
+  imports: [
+    CommonModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    RouterModule.forChild(RegistrationRoutes),
+    SharedModule,
+  ],
+  declarations: [
+    RegistrationComponent,
+    LoginComponent,
+  ],
+  exports: [
+  ],
+  providers: []
 })
 export class RegistrationModule { }

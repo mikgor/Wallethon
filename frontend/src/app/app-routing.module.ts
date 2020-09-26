@@ -2,14 +2,15 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import {RegistrationLayoutComponent} from './layout/components/registration-layout/registration-layout.component';
 import {LandingLayoutComponent} from './layout/components/landing-layout/landing-layout.component';
-import {MainLayoutComponent} from "./layout/components/main-layout/main-layout.component";
+import {MainLayoutComponent} from './layout/components/main-layout/main-layout.component';
+import {AuthGuardService} from "./registration/auth.guard";
+import {NotFoundComponent} from "./shared/components/not-found/not-found.component";
 
 
 const routes: Routes = [
   {
     path: '',
     component: LandingLayoutComponent,
-    pathMatch: 'full',
     children: [
       {
         path: '',
@@ -19,8 +20,9 @@ const routes: Routes = [
   },
   {
     path: '',
+    canActivate: [AuthGuardService],
+    canActivateChild: [AuthGuardService],
     component: RegistrationLayoutComponent,
-    pathMatch: 'full',
     children: [
       {
         path: '',
@@ -30,15 +32,20 @@ const routes: Routes = [
   },
   {
     path: '',
+    canActivate: [AuthGuardService],
+    canActivateChild: [AuthGuardService],
     component: MainLayoutComponent,
-    pathMatch: 'full',
     children: [
       {
         path: '',
         loadChildren: () => import('./main/main.module').then(m => m.MainModule)
       }
     ]
-  }
+  },
+  {
+    path: '**',
+    component: NotFoundComponent
+  },
 ];
 
 @NgModule({

@@ -1,1 +1,21 @@
-<p>registration-layout works!</p>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallethon</title>
+  </head>
+  <body>
+    <header>
+      <div class="left">Wallethon</div>
+      <div class="right">
+        <div id="menu">
+          <a mat-button [routerLink]="['/' + APP_ROUTES.login]">Login</a>
+        </div>
+      </div>
+    </header>
+    <section class="content">
+      <router-outlet></router-outlet>
+    </section>
+  </body>
+</html>

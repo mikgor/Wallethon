@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {APP_ROUTES} from '../../../routes-config';
 
 @Component({
   selector: 'app-registration-layout',
@@ -6,6 +7,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./registration-layout.component.scss']
 })
 export class RegistrationLayoutComponent implements OnInit {
+  APP_ROUTES = APP_ROUTES;
 
   constructor() { }
 

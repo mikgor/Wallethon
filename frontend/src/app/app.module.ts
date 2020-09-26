@@ -5,13 +5,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {FormsModule} from '@angular/forms';
-import {HttpClientModule} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {RouterModule} from '@angular/router';
 import {LayoutModule} from './layout/layout.module';
 import {RegistrationModule} from './registration/registration.module';
 import {LandingModule} from './landing/landing.module';
 import {MainModule} from './main/main.module';
-
+import {AuthInterceptor, AuthService} from './registration/services/auth.service';
+import {SharedModule} from './shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -24,12 +25,16 @@ import {MainModule} from './main/main.module';
     HttpClientModule,
     RouterModule,
     AppRoutingModule,
+    SharedModule,
     LayoutModule,
     MainModule,
     RegistrationModule,
     LandingModule
   ],
-  providers: [],
+  providers: [
+    AuthService,
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
