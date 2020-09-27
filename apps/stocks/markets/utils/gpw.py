@@ -13,6 +13,6 @@ def get_stock_companies_symbols_tuples(file_path=None):
             if line.startswith(lines_starts_to_ignore):
                 continue
             line_split = line.split('(')
-            companies_symbols_tuple_list.append((line_split[1].split(')')[0], line_split[0].strip()))
+            companies_symbols_tuple_list.append((line_split[1].split(')')[0], line_split[0].strip(), None))
 
     return companies_symbols_tuple_list

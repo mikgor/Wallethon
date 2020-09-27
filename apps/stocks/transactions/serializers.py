@@ -40,7 +40,7 @@ class StockTransactionSerializer(BaseModelSerializer):
         fields = [
             'uuid',
             'type',
-            'company',
+            'company_stock',
             'stock_quantity',
             'per_stock_price',
             'per_stock_price_currency',
@@ -87,7 +87,7 @@ class CashDividendTransactionSerializer(BaseModelSerializer):
         model = CashDividendTransaction
         fields = [
             'uuid',
-            'company',
+            'company_stock',
             'dividend',
             'dividend_currency',
             'commission',
@@ -110,7 +110,7 @@ class StockDividendTransactionSerializer(BaseModelSerializer):
         model = StockDividendTransaction
         fields = [
             'uuid',
-            'company',
+            'company_stock',
             'stock_quantity',
             'date',
             'user',
@@ -124,7 +124,7 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
         model = StockSplitTransaction
         fields = [
             'uuid',
-            'company',
+            'company_stock',
             'exchange_ratio_from',
             'exchange_ratio_for',
             'optional',

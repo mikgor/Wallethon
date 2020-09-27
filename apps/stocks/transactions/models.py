@@ -6,7 +6,7 @@ from django.db import models
 from djmoney.models.fields import MoneyField
 from djmoney.models.validators import MinMoneyValidator
 
-from apps.stocks.markets.models import Company
+from apps.stocks.markets.models import CompanyStock
 from main import rules
 from main.models import BaseModel, User
 
@@ -20,7 +20,7 @@ class StockTransaction(BaseModel):
     )
 
     type = models.CharField(max_length=30, choices=TRANSACTION_TYPE_CHOICES)
-    company = models.ForeignKey(Company, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     per_stock_price = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                                  validators=[MinMoneyValidator(Decimal('0.01'))])
@@ -60,7 +60,7 @@ class StockTransaction(BaseModel):
 
 
 class CashDividendTransaction(BaseModel):
-    company = models.ForeignKey(Company, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
     dividend = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                           validators=[MinMoneyValidator(Decimal('0.01'))])
     commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
@@ -93,7 +93,7 @@ class CashDividendTransaction(BaseModel):
 
 
 class StockDividendTransaction(BaseModel):
-    company = models.ForeignKey(Company, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
@@ -109,14 +109,14 @@ class StockDividendTransaction(BaseModel):
 
 
 class StockSplitTransaction(BaseModel):
-    company = models.ForeignKey(Company, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
     exchange_ratio_from = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     exchange_ratio_for = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     optional = models.BooleanField(default=False)
     pay_date = models.DateField()
 
     class Meta:
-        unique_together = [('company', 'pay_date', 'exchange_ratio_from', 'exchange_ratio_for')]
+        unique_together = [('company_stock', 'pay_date', 'exchange_ratio_from', 'exchange_ratio_for')]
         db_table = "stocks_transaction_stock_split_transaction"
         rules_permissions = {
             "view": rules.is_authenticated,

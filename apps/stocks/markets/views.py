@@ -1,5 +1,6 @@
-from apps.stocks.markets.models import Market, Company, MarketCompany
-from apps.stocks.markets.serializers import MarketSerializer, CompanySerializer, MarketCompanySerializer
+from apps.stocks.markets.models import Market, Company, CompanyStock, MarketCompanyStock
+from apps.stocks.markets.serializers import MarketSerializer, CompanySerializer, \
+    CompanyStockSerializer, MarketCompanyStockSerializer
 from main.views import ProtectedModelViewSet
 
 
@@ -21,10 +22,19 @@ class CompanyViewSet(ProtectedModelViewSet):
         return self.model.objects.all()
 
 
-class MarketCompanyViewSet(ProtectedModelViewSet):
-    model = MarketCompany
+class CompanyStockViewSet(ProtectedModelViewSet):
+    model = CompanyStock
     queryset = model.objects.none()
-    serializer_class = MarketCompanySerializer
+    serializer_class = CompanyStockSerializer
+
+    def get_queryset(self):
+        return self.model.objects.all()
+
+
+class MarketCompanyStockViewSet(ProtectedModelViewSet):
+    model = MarketCompanyStock
+    queryset = model.objects.none()
+    serializer_class = MarketCompanyStockSerializer
 
     def get_queryset(self):
         return self.model.objects.all()

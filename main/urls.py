@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, include
 
-from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyViewSet
+from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyStockViewSet, \
+    CompanyStockViewSet
 from apps.stocks.transactions.views import StockTransactionViewSet, CashDividendTransactionViewSet, \
     StockDividendTransactionViewSet, StockSplitTransactionViewSet
 from frontend.views import home_view
@@ -29,7 +30,8 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
 router.register(r'markets', MarketViewSet, basename='markets')
 router.register(r'companies', CompanyViewSet, basename='companies')
-router.register(r'marketcompanies', MarketCompanyViewSet, basename='marketcompanies')
+router.register(r'companystocks', CompanyStockViewSet, basename='companystocks')
+router.register(r'marketcompanystocks', MarketCompanyStockViewSet, basename='marketcompanystocks')
 router.register(r'stocktransactions', StockTransactionViewSet, basename='stocktransactions')
 router.register(r'cashdividendtransactions', CashDividendTransactionViewSet, basename='cashdividendtransactions')
 router.register(r'stockdividendtransactions', StockDividendTransactionViewSet, basename='stocktdividendtransactions')

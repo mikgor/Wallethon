@@ -33,7 +33,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         currency_code = self.faker.currency_code()
         data = {
                 'type': self.faker.stock_transaction_type(),
-                'company': self.create_company().id,
+                'company_stock': self.create_company_stock().id,
                 'stock_quantity': self.faker.stock_quantity(),
                 'per_stock_price': self.faker.per_stock_price(),
                 'per_stock_price_currency': currency_code,
@@ -158,7 +158,7 @@ class CashDividendTransactionViewSetTestCase(ViewTestCase):
 
         currency_code = self.faker.currency_code()
         data = {
-                'company': self.create_company().id,
+                'company_stock': self.create_company_stock().id,
                 'dividend': self.faker.dividend(),
                 'dividend_currency': currency_code,
                 'commission': self.faker.commission(),
@@ -268,7 +268,7 @@ class StockDividendTransactionViewSetTestCase(ViewTestCase):
             user = self.superuser
 
         data = {
-                'company': self.create_company().id,
+                'company_stock': self.create_company_stock().id,
                 'stock_quantity': self.faker.stock_quantity(),
                 'date': self.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE)),
                 'user': user.id,
@@ -282,7 +282,7 @@ class StockDividendTransactionViewSetTestCase(ViewTestCase):
         response = self.post(endpoint='/api/v1/stockdividendtransactions/', data=data, auth_user=self.superuser)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['company'], data['company'])
+        self.assertEqual(response.data['company_stock'], data['company_stock'])
         self.assertEqual(response.data['stock_quantity'], data['stock_quantity'])
         self.assertEqual(response.data['date'], formatted_date(data['date']))
         self.assertEqual(response.data['user'], data['user'])
@@ -309,7 +309,7 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
 
     def __stock_split_transaction_data_helper(self):
         data = {
-                'company': self.create_company().id,
+                'company_stock': self.create_company_stock().id,
                 'exchange_ratio_from': self.faker.exchange_ratio(),
                 'exchange_ratio_for': self.faker.exchange_ratio(),
                 'optional': self.faker.boolean(),
@@ -323,7 +323,7 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
         response = self.post(endpoint='/api/v1/stocksplittransactions/', data=data, auth_user=self.superuser)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['company'], data['company'])
+        self.assertEqual(response.data['company_stock'], data['company_stock'])
         self.assertEqual(response.data['exchange_ratio_from'], data['exchange_ratio_from'])
         self.assertEqual(response.data['exchange_ratio_for'], data['exchange_ratio_for'])
         self.assertEqual(response.data['optional'], data['optional'])

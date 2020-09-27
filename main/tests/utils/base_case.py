@@ -1,7 +1,7 @@
 import pytz
 from django.test import TestCase
 
-from apps.stocks.markets.models import Market, Company, MarketCompany
+from apps.stocks.markets.models import Market, Company, CompanyStock, MarketCompanyStock
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
     StockSplitTransaction
 from main.models import User
@@ -64,45 +64,61 @@ class BaseTestCase(TestCase):
         return market
 
     @classmethod
-    def create_company(cls, company_name=None, company_symbol=None) -> object:
-        if company_name is None:
-            company_name = cls.faker.company()
-
-        if company_symbol is None:
-            company_symbol = cls.faker.company_suffix()
+    def create_company(cls, name=None) -> object:
+        if name is None:
+            name = cls.faker.company()
 
         company = cls._create_model_instance(
             Company,
-            name=company_name,
-            symbol=company_symbol
+            name=name,
         )
 
         return company
 
     @classmethod
-    def create_market_company(cls, market=None, company=None) -> object:
-        if market is None:
-            market = cls.create_market()
-
+    def create_company_stock(cls, company=None, symbol=None, details=None) -> object:
         if company is None:
             company = cls.create_company()
 
-        market_company = cls._create_model_instance(
-            MarketCompany,
-            market=market,
-            company=company
+        if symbol is None:
+            symbol = cls.faker.company_suffix()
+
+        if details is None:
+            details = cls.faker.sentence()
+
+        company_stock = cls._create_model_instance(
+            CompanyStock,
+            company=company,
+            symbol=symbol,
+            details=details
         )
 
-        return market_company
+        return company_stock
 
     @classmethod
-    def create_stock_transaction(cls, company=None, transaction_type=None, quantity=0, per_stock_price=0,
+    def create_market_company_stock(cls, market=None, company_stock=None) -> object:
+        if market is None:
+            market = cls.create_market()
+
+        if company_stock is None:
+            company_stock = cls.create_company_stock()
+
+        market_company_stock = cls._create_model_instance(
+            MarketCompanyStock,
+            market=market,
+            company_stock=company_stock
+        )
+
+        return market_company_stock
+
+    @classmethod
+    def create_stock_transaction(cls, company_stock=None, transaction_type=None, quantity=0, per_stock_price=0,
                                  commission=0, tax=0, date=None, user=None, broker_name=None) -> object:
         if transaction_type is None:
             transaction_type = cls.faker.stock_transaction_type()
 
-        if company is None:
-            company = cls.create_company()
+        if company_stock is None:
+            company_stock = cls.create_company_stock()
 
         if quantity <= 0:
             quantity = cls.faker.stock_quantity()
@@ -122,7 +138,7 @@ class BaseTestCase(TestCase):
         stock_transaction = cls._create_model_instance(
             StockTransaction,
             type=transaction_type,
-            company=company,
+            company_stock=company_stock,
             stock_quantity=quantity,
             per_stock_price=per_stock_price,
             commission=commission,
@@ -135,10 +151,10 @@ class BaseTestCase(TestCase):
         return stock_transaction
 
     @classmethod
-    def create_cash_dividend_transaction(cls, company=None, dividend=0, commission=0, tax=0,
+    def create_cash_dividend_transaction(cls, company_stock=None, dividend=0, commission=0, tax=0,
                                          date=None, user=None, broker_name=None) -> object:
-        if company is None:
-            company = cls.create_company()
+        if company_stock is None:
+            company_stock = cls.create_company_stock()
 
         if dividend <= 0:
             dividend = cls.faker.dividend()
@@ -154,7 +170,7 @@ class BaseTestCase(TestCase):
 
         cash_dividend_transaction = cls._create_model_instance(
             CashDividendTransaction,
-            company=company,
+            company_stock=company_stock,
             dividend=dividend,
             commission=commission,
             tax=tax,
@@ -166,10 +182,10 @@ class BaseTestCase(TestCase):
         return cash_dividend_transaction
 
     @classmethod
-    def create_stock_dividend_transaction(cls, company=None, stock_quantity=0,
+    def create_stock_dividend_transaction(cls, company_stock=None, stock_quantity=0,
                                           date=None, user=None, broker_name=None) -> object:
-        if company is None:
-            company = cls.create_company()
+        if company_stock is None:
+            company_stock = cls.create_company_stock()
 
         if stock_quantity <= 0:
             stock_quantity = cls.faker.stock_quantity()
@@ -185,7 +201,7 @@ class BaseTestCase(TestCase):
 
         stock_dividend_transaction = cls._create_model_instance(
             StockDividendTransaction,
-            company=company,
+            company_stock=company_stock,
             stock_quantity=stock_quantity,
             date=date,
             user=user,
@@ -195,10 +211,10 @@ class BaseTestCase(TestCase):
         return stock_dividend_transaction
 
     @classmethod
-    def create_stock_split_transaction(cls, company=None, exchange_ratio_from=0,
+    def create_stock_split_transaction(cls, company_stock=None, exchange_ratio_from=0,
                                        exchange_ratio_for=0, optional=None, pay_date=None) -> object:
-        if company is None:
-            company = cls.create_company()
+        if company_stock is None:
+            company_stock = cls.create_company_stock()
 
         if exchange_ratio_from <= 0:
             exchange_ratio_from = cls.faker.exchange_ratio()
@@ -214,7 +230,7 @@ class BaseTestCase(TestCase):
 
         stock_split_transaction = cls._create_model_instance(
             StockSplitTransaction,
-            company=company,
+            company_stock=company_stock,
             exchange_ratio_from=exchange_ratio_from,
             exchange_ratio_for=exchange_ratio_for,
             optional=optional,

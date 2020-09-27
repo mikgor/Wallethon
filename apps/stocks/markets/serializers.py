@@ -1,4 +1,4 @@
-from apps.stocks.markets.models import Market, Company, MarketCompany
+from apps.stocks.markets.models import Market, Company, MarketCompanyStock, CompanyStock
 from main.serializers.base import BaseModelSerializer
 
 
@@ -16,16 +16,26 @@ class CompanySerializer(BaseModelSerializer):
         model = Company
         fields = [
             'uuid',
-            'name',
-            'symbol'
+            'name'
         ]
 
 
-class MarketCompanySerializer(BaseModelSerializer):
+class CompanyStockSerializer(BaseModelSerializer):
     class Meta:
-        model = MarketCompany
+        model = CompanyStock
+        fields = [
+            'uuid',
+            'company',
+            'symbol',
+            'details'
+        ]
+
+
+class MarketCompanyStockSerializer(BaseModelSerializer):
+    class Meta:
+        model = MarketCompanyStock
         fields = [
             'uuid',
             'market',
-            'company'
+            'company_stock'
         ]
