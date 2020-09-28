@@ -21,6 +21,8 @@ class CompanySerializer(BaseModelSerializer):
 
 
 class CompanyStockSerializer(BaseModelSerializer):
+    company = CompanySerializer()
+
     class Meta:
         model = CompanyStock
         fields = [
@@ -32,6 +34,8 @@ class CompanyStockSerializer(BaseModelSerializer):
 
 
 class MarketCompanyStockSerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
+
     class Meta:
         model = MarketCompanyStock
         fields = [

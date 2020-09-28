@@ -30,3 +30,10 @@ def populate_db():
     for i in range(15):
         random_company_stock = CompanyStock.objects.order_by('?')[0]
         v.create_stock_transaction(user=superuser, company_stock=random_company_stock)
+
+    for i in range(10):
+        random_company_stock = CompanyStock.objects.order_by('?')[0]
+        v.create_cash_dividend_transaction(user=superuser, company_stock=random_company_stock)
+        v.create_stock_dividend_transaction(user=superuser, company_stock=random_company_stock)
+        v.create_stock_split_transaction(company_stock=random_company_stock)
+        v.create_stock_transaction(user=superuser, company_stock=random_company_stock)

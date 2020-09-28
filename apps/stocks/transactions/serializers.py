@@ -2,6 +2,7 @@ from django.db import transaction
 from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
 
+from apps.stocks.markets.serializers import CompanyStockSerializer
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
     StockSplitTransaction
 from main.models import User
@@ -9,6 +10,7 @@ from main.serializers.base import BaseModelSerializer
 
 
 class StockTransactionSerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
     total_value = MoneyField(max_digits=14, decimal_places=4, read_only=True)
     total_value_currency = serializers.CharField(read_only=True, allow_null=True)
     per_stock_price = MoneyField(max_digits=14, decimal_places=4)
@@ -57,6 +59,7 @@ class StockTransactionSerializer(BaseModelSerializer):
 
 
 class CashDividendTransactionSerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
     total_value = MoneyField(max_digits=14, decimal_places=4, read_only=True)
     total_value_currency = serializers.CharField(read_only=True, allow_null=True)
     dividend = MoneyField(max_digits=14, decimal_places=4)
@@ -103,6 +106,7 @@ class CashDividendTransactionSerializer(BaseModelSerializer):
 
 
 class StockDividendTransactionSerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_active=True))
     broker_name = serializers.CharField()
 
@@ -119,6 +123,7 @@ class StockDividendTransactionSerializer(BaseModelSerializer):
 
 
 class StockSplitTransactionSerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
 
     class Meta:
         model = StockSplitTransaction

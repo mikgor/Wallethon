@@ -14,9 +14,10 @@ class StockTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
 
         if user.is_superuser:
-            return self.model.objects.all()
+            queryset = self.model.objects.all()
         else:
-            return self.model.objects.filter(user=user)
+            queryset = self.model.objects.filter(user=user)
+        return queryset.order_by('-date')
 
 
 class CashDividendTransactionViewSet(ProtectedModelViewSet):
@@ -28,9 +29,10 @@ class CashDividendTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
 
         if user.is_superuser:
-            return self.model.objects.all()
+            queryset = self.model.objects.all()
         else:
-            return self.model.objects.filter(user=user)
+            queryset = self.model.objects.filter(user=user)
+        return queryset.order_by('-date')
 
 
 class StockDividendTransactionViewSet(ProtectedModelViewSet):
@@ -42,9 +44,11 @@ class StockDividendTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
 
         if user.is_superuser:
-            return self.model.objects.all()
+            queryset = self.model.objects.all()
         else:
-            return self.model.objects.filter(user=user)
+            queryset = self.model.objects.filter(user=user)
+
+        return queryset.order_by('-date')
 
 
 class StockSplitTransactionViewSet(ProtectedModelViewSet):
@@ -53,4 +57,14 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
     serializer_class = StockSplitTransactionSerializer
 
     def get_queryset(self):
-        return self.model.objects.all()
+        user = self.request.user
+        filtered = self.request.query_params.get('filtered')
+
+        if filtered:
+            user_stock_transactions_ids = StockTransaction.objects.filter(user=user)\
+                .values_list('company_stock__id').distinct()
+            queryset = self.model.objects.filter(company_stock__id__in=user_stock_transactions_ids)
+        else:
+            queryset = self.model.objects.all()
+
+        return queryset.order_by('-pay_date')
