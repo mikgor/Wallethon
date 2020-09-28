@@ -5,6 +5,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';
 import {MainRoutes} from './main.routing';
 import {DashboardComponent} from './components/dashboard/dashboard.component';
+import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
     imports: [
@@ -13,6 +14,7 @@ import {DashboardComponent} from './components/dashboard/dashboard.component';
         FormsModule,
         ReactiveFormsModule,
         RouterModule.forChild(MainRoutes),
+        SharedModule,
     ],
     declarations: [
         DashboardComponent,

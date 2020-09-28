@@ -1,1 +1,87 @@
-<p>dashboard works!</p>
+<h1>Stocks</h1>
+<div *ngIf="!dataLoaded">
+  <mat-card>
+    <mat-card-content>
+      <h2>Loading data</h2>
+      <mat-spinner></mat-spinner>
+    </mat-card-content>
+  </mat-card>
+</div>
+<span *ngIf="dataLoaded">
+  <span class="flex-table">
+    <span *ngFor="let transaction of transactions;" [ngSwitch]="getTransactionType(transaction)">
+    <ng-container *ngSwitchCase="'StockTransaction'">
+      <div class="row {{transaction.type}}-transaction">
+        <span *ngIf="transaction.type == 'BUY'; then thenBlock else elseBlock"></span>
+        <ng-template #thenBlock>
+          <div class="cell">
+            <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy">account_balance_wallet</mat-icon>
+          </div>
+        </ng-template>
+        <ng-template #elseBlock>
+          <div class="cell">
+            <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell">attach_money</mat-icon>
+          </div>
+        </ng-template>
+        <div class="cell">{{transaction.date.toLocaleString()}}</div>
+        <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
+        <div class="cell" title="Stock quantity">{{transaction.stockQuantity}}</div>
+        <div class="cell" title="Price per stock">
+          {{moneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
+        </div>
+        <div class="cell" title="Total value (price per stock * stock quantity + tax + commissions) =
+({{transaction.perStockPrice}} {{transaction.perStockPriceCurrency}} * {{transaction.stockQuantity}} + {{transaction.tax}} {{transaction.taxCurrency}} + {{transaction.commission}} {{transaction.commissionCurrency}})">
+          <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+        </div>
+        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+      </div>
+    </ng-container>
+    <ng-container *ngSwitchCase="'StockSplitTransaction'">
+      <div class="row split-transaction">
+        <div class="cell">
+          <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split">call_split</mat-icon>
+        </div>
+        <div class="cell">{{transaction.date.toLocaleString()}}</div>
+        <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
+        <div class="cell" title="Exchange ratio">
+          {{transaction.exchangeRatioFrom}}:{{transaction.exchangeRatioFor}}
+        </div>
+        <div class="cell"><span *ngIf="transaction.optional">Optional</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+      </div>
+    </ng-container>
+      <ng-container *ngSwitchCase="'CashDividendTransaction'">
+      <div class="row cash-dividend-transaction">
+        <div class="cell">
+          <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend">pie_chart</mat-icon>
+        </div>
+        <div class="cell">{{transaction.date.toLocaleString()}}</div>
+        <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
+        <div class="cell"></div>
+        <div class="cell" title="Dividend">
+          {{moneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
+        </div>
+        <div class="cell" title="Total value (dividend - [tax + commissions]) =
+({{transaction.dividend}} {{transaction.dividendCurrency}} - [{{transaction.tax}} {{transaction.taxCurrency}} + {{transaction.commission}} {{transaction.commissionCurrency}}])">
+          <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+        </div>
+        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+      </div>
+    </ng-container>
+      <ng-container *ngSwitchCase="'StockDividendTransaction'">
+      <div class="row stock-dividend-transaction">
+        <div class="cell">
+          <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend">pie_chart</mat-icon>
+        </div>
+        <div class="cell">{{transaction.date.toLocaleString()}}</div>
+        <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
+        <div class="cell" title="Stock quantity"> {{transaction.stockQuantity}}</div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+      </div>
+    </ng-container>
+  </span>
+</span>
+</span>

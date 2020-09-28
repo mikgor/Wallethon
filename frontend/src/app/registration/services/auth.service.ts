@@ -2,22 +2,17 @@ import {Injectable} from '@angular/core';
 import {User} from '../models/user';
 import {HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {map} from 'rxjs/operators';
-import {PlatformLocation} from '@angular/common';
 import {Observable} from 'rxjs';
-import {USER_TOKEN_TTL} from '../../config';
+import {API_URL, USER_TOKEN_TTL} from '../../config';
 import {PermissionRule} from '../../routes-config';
 
 
 @Injectable()
 export class AuthService {
-  private readonly backendUrl: string;
 
   constructor(
     private http: HttpClient,
-    private location: PlatformLocation
-  ) {
-     this.backendUrl = (this.location as any).location.origin;
-    }
+  ) {}
 
   public getCurrentUser(): User {
     const userData = JSON.parse(localStorage.getItem('user'));
@@ -32,7 +27,7 @@ export class AuthService {
     this.logoutUser();
     const options = { headers: { 'Content-Type': 'application/json' } };
     const params = { username, password };
-    return this.http.post<any>(`${this.backendUrl}/api/v1/login/`, params, options)
+    return this.http.post<any>(`${API_URL}/login/`, params, options)
       .pipe(
         map((response) => {
           const user = new User(

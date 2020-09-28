@@ -6,7 +6,6 @@ import {RouterModule} from '@angular/router';
 import {RegistrationRoutes} from './registration.routing';
 import {RegistrationComponent} from './components/registration/registration/registration.component';
 import { LoginComponent } from './components/login/login.component';
-import {MatInputModule} from '@angular/material/input';
 import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
@@ -15,7 +14,6 @@ import {SharedModule} from '../shared/shared.module';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    MatInputModule,
     RouterModule.forChild(RegistrationRoutes),
     SharedModule,
   ],

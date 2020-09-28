@@ -1,0 +1,39 @@
+.green {
+  color: #1B8A6B;
+}
+
+.golden {
+  color: #D4AF37;
+}
+
+.blue {
+  color: #0093fb;
+}
+
+.dark-blue {
+  color: #0042fb;
+}
+
+mat-grid-tile {
+  overflow: visible;
+}
+
+.BUY-transaction {
+  border-color: #1B8A6B;
+}
+
+.SELL-transaction {
+  border-color: #f44336;
+}
+
+.split-transaction {
+  border-color: #D4AF37;
+}
+
+.cash-dividend-transaction {
+  border-color: #0093fb;
+}
+
+.stock-dividend-transaction {
+  border-color: #0042fb;
+}
