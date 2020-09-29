@@ -8,6 +8,64 @@ from main.tests.utils.view_case import ViewTestCase
 from main.utils import formatted_date
 
 
+class UserBrokerViewSetTestCase(ViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.superuser, _ = self.create_superuser()
+
+    def __user_broker_data_helper(self, user=None):
+        if user is None:
+            user = self.superuser
+
+        data = {
+            'user': user.id,
+            'broker_name': self.faker.company()
+        }
+
+        return data
+
+    def test_create_user_broker(self):
+        data = self.__user_broker_data_helper(user=self.superuser)
+        response = self.post(endpoint='/api/v1/userbrokers/', data=data, auth_user=self.superuser)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['user'], data['user'])
+        self.assertTrue(response.data['broker_name'], data['broker_name'])
+
+    def test_update_user_broker(self):
+        response = self.post(endpoint='/api/v1/userbrokers/',
+                             data=self.__user_broker_data_helper(), auth_user=self.superuser)
+
+        data = self.__user_broker_data_helper()
+        data['broker_name'] = self.faker.company()
+
+        update_response = self.put(endpoint='/api/v1/userbrokers/{id}/'.format(id=response.data['uuid']),
+                                   data=data, auth_user=self.superuser)
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.data['broker_name'], data['broker_name'])
+
+    def test_update_user_broker_permissions(self):
+        user, _ = self.create_user()
+
+        response = self.post(endpoint='/api/v1/userbrokers/',
+                             data=self.__user_broker_data_helper(), auth_user=self.superuser)
+
+        self.assertEqual(response.status_code, 201)
+
+        superuser_get_response = self.get(endpoint='/api/v1/userbrokers/',
+                                          data=self.__user_broker_data_helper(), auth_user=self.superuser)
+
+        user_get_response = self.get(endpoint='/api/v1/userbrokers/',
+                                     data=self.__user_broker_data_helper(user=user), auth_user=user)
+
+        self.assertEqual(superuser_get_response.status_code, 200)
+        self.assertEqual(user_get_response.status_code, 200)
+
+        self.assertEqual(len(superuser_get_response.data), 1)
+        self.assertEqual(len(user_get_response.data), 0)
+
+
 class StockTransactionViewSetTestCase(ViewTestCase):
     def setUp(self):
         super().setUp()
@@ -33,7 +91,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         currency_code = self.faker.currency_code()
         data = {
                 'type': self.faker.stock_transaction_type(),
-                'company_stock': self.create_company_stock().id,
+                'company_stock_id': self.create_company_stock().id,
                 'stock_quantity': self.faker.stock_quantity(),
                 'per_stock_price': self.faker.per_stock_price(),
                 'per_stock_price_currency': currency_code,
@@ -43,7 +101,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
                 'tax_currency': currency_code,
                 'date': self.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE)),
                 'user': user.id,
-                'broker_name': self.faker.company()
+                'broker_id': self.create_user_broker().id
             }
 
         return data
@@ -51,6 +109,7 @@ class StockTransactionViewSetTestCase(ViewTestCase):
     def test_create_stock_transaction(self):
         response = self.post(endpoint='/api/v1/stocktransactions/',
                              data=self.__stock_transaction_data_helper(), auth_user=self.superuser)
+
         transaction_type = response.data['type']
         total_value = Decimal(response.data['total_value'])
         compare = operator.gt if transaction_type == 'BUY' else operator.lt
@@ -158,7 +217,7 @@ class CashDividendTransactionViewSetTestCase(ViewTestCase):
 
         currency_code = self.faker.currency_code()
         data = {
-                'company_stock': self.create_company_stock().id,
+                'company_stock_id': self.create_company_stock().id,
                 'dividend': self.faker.dividend(),
                 'dividend_currency': currency_code,
                 'commission': self.faker.commission(),
@@ -167,7 +226,7 @@ class CashDividendTransactionViewSetTestCase(ViewTestCase):
                 'tax_currency': currency_code,
                 'date': self.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE)),
                 'user': user.id,
-                'broker_name': self.faker.company()
+                'broker_id': self.create_user_broker().id
             }
 
         return data
@@ -268,11 +327,11 @@ class StockDividendTransactionViewSetTestCase(ViewTestCase):
             user = self.superuser
 
         data = {
-                'company_stock': self.create_company_stock().id,
+                'company_stock_id': self.create_company_stock().id,
                 'stock_quantity': self.faker.stock_quantity(),
                 'date': self.faker.date_time(tzinfo=pytz.timezone(TIME_ZONE)),
                 'user': user.id,
-                'broker_name': self.faker.company()
+                'broker_id': self.create_user_broker().id
             }
 
         return data
@@ -282,11 +341,11 @@ class StockDividendTransactionViewSetTestCase(ViewTestCase):
         response = self.post(endpoint='/api/v1/stockdividendtransactions/', data=data, auth_user=self.superuser)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['company_stock'], data['company_stock'])
+        self.assertEqual(response.data['company_stock']['uuid'], data['company_stock_id'])
         self.assertEqual(response.data['stock_quantity'], data['stock_quantity'])
         self.assertEqual(response.data['date'], formatted_date(data['date']))
         self.assertEqual(response.data['user'], data['user'])
-        self.assertEqual(response.data['broker_name'], data['broker_name'])
+        self.assertEqual(response.data['broker']['uuid'], data['broker_id'])
 
     def test_update_stock_dividend_transaction(self):
         response = self.post(endpoint='/api/v1/stockdividendtransactions/',
@@ -309,7 +368,7 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
 
     def __stock_split_transaction_data_helper(self):
         data = {
-                'company_stock': self.create_company_stock().id,
+                'company_stock_id': self.create_company_stock().id,
                 'exchange_ratio_from': self.faker.exchange_ratio(),
                 'exchange_ratio_for': self.faker.exchange_ratio(),
                 'optional': self.faker.boolean(),
@@ -323,7 +382,7 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
         response = self.post(endpoint='/api/v1/stocksplittransactions/', data=data, auth_user=self.superuser)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['company_stock'], data['company_stock'])
+        self.assertEqual(response.data['company_stock']['uuid'], data['company_stock_id'])
         self.assertEqual(response.data['exchange_ratio_from'], data['exchange_ratio_from'])
         self.assertEqual(response.data['exchange_ratio_for'], data['exchange_ratio_for'])
         self.assertEqual(response.data['optional'], data['optional'])

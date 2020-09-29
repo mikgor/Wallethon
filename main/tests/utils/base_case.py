@@ -3,7 +3,7 @@ from django.test import TestCase
 
 from apps.stocks.markets.models import Market, Company, CompanyStock, MarketCompanyStock
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
-    StockSplitTransaction
+    StockSplitTransaction, UserBroker
 from main.models import User
 from main.settings import TIME_ZONE
 from main.tests.faker import faker
@@ -76,6 +76,22 @@ class BaseTestCase(TestCase):
         return company
 
     @classmethod
+    def create_user_broker(cls, user=None, broker_name=None) -> object:
+        if user is None:
+            user, _ = cls.create_user()
+
+        if broker_name is None:
+            broker_name = cls.faker.company()
+
+        user_broker = cls._create_model_instance(
+            UserBroker,
+            user=user,
+            broker_name=broker_name,
+        )
+
+        return user_broker
+
+    @classmethod
     def create_company_stock(cls, company=None, symbol=None, details=None) -> object:
         if company is None:
             company = cls.create_company()
@@ -113,7 +129,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def create_stock_transaction(cls, company_stock=None, transaction_type=None, quantity=0, per_stock_price=0,
-                                 commission=0, tax=0, date=None, user=None, broker_name=None) -> object:
+                                 commission=0, tax=0, date=None, user=None, broker=None) -> object:
         if transaction_type is None:
             transaction_type = cls.faker.stock_transaction_type()
 
@@ -132,8 +148,8 @@ class BaseTestCase(TestCase):
         if user is None:
             user, _ = cls.create_user()
 
-        if broker_name is None:
-            broker_name = cls.faker.company()
+        if broker is None:
+            broker = cls.create_user_broker()
 
         stock_transaction = cls._create_model_instance(
             StockTransaction,
@@ -145,14 +161,14 @@ class BaseTestCase(TestCase):
             tax=tax,
             date=date,
             user=user,
-            broker_name=broker_name
+            broker=broker
         )
 
         return stock_transaction
 
     @classmethod
     def create_cash_dividend_transaction(cls, company_stock=None, dividend=0, commission=0, tax=0,
-                                         date=None, user=None, broker_name=None) -> object:
+                                         date=None, user=None, broker=None) -> object:
         if company_stock is None:
             company_stock = cls.create_company_stock()
 
@@ -165,8 +181,8 @@ class BaseTestCase(TestCase):
         if user is None:
             user, _ = cls.create_user()
 
-        if broker_name is None:
-            broker_name = cls.faker.company()
+        if broker is None:
+            broker = cls.create_user_broker()
 
         cash_dividend_transaction = cls._create_model_instance(
             CashDividendTransaction,
@@ -176,14 +192,14 @@ class BaseTestCase(TestCase):
             tax=tax,
             date=date,
             user=user,
-            broker_name=broker_name
+            broker=broker
         )
 
         return cash_dividend_transaction
 
     @classmethod
     def create_stock_dividend_transaction(cls, company_stock=None, stock_quantity=0,
-                                          date=None, user=None, broker_name=None) -> object:
+                                          date=None, user=None, broker=None) -> object:
         if company_stock is None:
             company_stock = cls.create_company_stock()
 
@@ -196,8 +212,8 @@ class BaseTestCase(TestCase):
         if user is None:
             user, _ = cls.create_user()
 
-        if broker_name is None:
-            broker_name = cls.faker.company()
+        if broker is None:
+            broker = cls.create_user_broker()
 
         stock_dividend_transaction = cls._create_model_instance(
             StockDividendTransaction,
@@ -205,7 +221,7 @@ class BaseTestCase(TestCase):
             stock_quantity=stock_quantity,
             date=date,
             user=user,
-            broker_name=broker_name
+            broker=broker
         )
 
         return stock_dividend_transaction

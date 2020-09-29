@@ -20,7 +20,7 @@ from django.urls import path, include
 from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyStockViewSet, \
     CompanyStockViewSet
 from apps.stocks.transactions.views import StockTransactionViewSet, CashDividendTransactionViewSet, \
-    StockDividendTransactionViewSet, StockSplitTransactionViewSet
+    StockDividendTransactionViewSet, StockSplitTransactionViewSet, UserBrokerViewSet
 from frontend.views import home_view
 from main.views import LoginView, UserViewSet
 
@@ -30,6 +30,7 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
 router.register(r'markets', MarketViewSet, basename='markets')
 router.register(r'companies', CompanyViewSet, basename='companies')
+router.register(r'userbrokers', UserBrokerViewSet, basename='userbrokers')
 router.register(r'companystocks', CompanyStockViewSet, basename='companystocks')
 router.register(r'marketcompanystocks', MarketCompanyStockViewSet, basename='marketcompanystocks')
 router.register(r'stocktransactions', StockTransactionViewSet, basename='stocktransactions')

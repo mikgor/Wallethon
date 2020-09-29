@@ -1,18 +1,19 @@
 import {CompanyStock} from './CompanyStock';
+import {UserBroker} from './UserBroker';
 
 export class StockDividendTransaction {
   id: string;
   companyStock: CompanyStock;
   stockQuantity: number;
   date: Date;
-  brokerName: string;
+  broker: UserBroker;
 
   constructor(id: string, companyStock: CompanyStock, stockQuantity: number, date: Date,
-              brokerName: string) {
+              broker: UserBroker) {
     this.id = id;
     this.companyStock = companyStock;
     this.stockQuantity = stockQuantity;
     this.date = date;
-    this.brokerName = brokerName;
+    this.broker = broker;
   }
 }

@@ -1,4 +1,5 @@
 import {CompanyStock} from './CompanyStock';
+import {UserBroker} from './UserBroker';
 
 export class StockTransaction {
   id: string;
@@ -14,12 +15,12 @@ export class StockTransaction {
   commissionCurrency: string;
   totalValue: number;
   totalValueCurrency: string;
-  brokerName: string;
+  broker: UserBroker;
 
   constructor(id: string, type: string, companyStock: CompanyStock, date: Date, perStockPrice: number,
               perStockPriceCurrency: string, stockQuantity: number, tax: number, taxCurrency: string,
               commission: number, commissionCurrency: string, totalValue: number, totalValueCurrency: string,
-              brokerName: string) {
+              broker: UserBroker) {
     this.id = id;
     this.type = type;
     this.companyStock = companyStock;
@@ -33,6 +34,6 @@ export class StockTransaction {
     this.commissionCurrency = commissionCurrency;
     this.totalValue = totalValue;
     this.totalValueCurrency = totalValueCurrency;
-    this.brokerName = brokerName;
+    this.broker = broker;
   }
 }

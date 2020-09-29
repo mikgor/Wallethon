@@ -8,6 +8,8 @@ import {StockSplitTransaction} from '../models/StockSplitTransaction';
 import {RequestsService} from '../../../../shared/services/requests.service';
 import {StockDividendTransaction} from '../models/StockDividendTransaction';
 import {CashDividendTransaction} from '../models/CashDividendTransaction';
+import {MoneyService} from '../../../../shared/services/money.service';
+import {UserBroker} from '../models/UserBroker';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +17,8 @@ import {CashDividendTransaction} from '../models/CashDividendTransaction';
 export class DashboardService {
   constructor(
     private http: HttpClient,
-    private requestsService: RequestsService
+    private requestsService: RequestsService,
+    private moneyService: MoneyService,
   ) {}
 
   public getCompanies() {
@@ -30,6 +33,22 @@ export class DashboardService {
     return this.requestsService.getRequest(`companies/${id}/`).pipe(
       map((response) => {
         return this.getCompanyFromResponse(response);
+      })
+    );
+  }
+
+  public getUserBrokers() {
+    return this.requestsService.getRequest(`userbrokers/`).pipe(
+      map((response) => {
+        return this.getUserBrokersFromResponse(response);
+      })
+    );
+  }
+
+  public getUserBrokerById(id: string) {
+    return this.requestsService.getRequest(`userbrokers/${id}/`).pipe(
+      map((response) => {
+        return this.getUserBrokerFromResponse(response);
       })
     );
   }
@@ -66,6 +85,14 @@ export class DashboardService {
     );
   }
 
+  public getStockTransactionTotalValueText(stockTransaction: StockTransaction) {
+    return 'Total value (price per stock * stock quantity + tax + commissions) =\n'
+      + ` (${this.moneyService.formatMoney(stockTransaction.perStockPrice, stockTransaction.perStockPriceCurrency)}`
+      + ` * ${stockTransaction.stockQuantity} +`
+      + ` ${this.moneyService.formatMoney(stockTransaction.tax, stockTransaction.taxCurrency)}`
+      + ` + ${this.moneyService.formatMoney(stockTransaction.commission, stockTransaction.commissionCurrency)})`;
+  }
+
   public getStockSplitTransactionById(id: string) {
     return this.requestsService.getRequest(`stocksplittransactions/${id}/`).pipe(
       map((response) => {
@@ -98,6 +125,13 @@ export class DashboardService {
     );
   }
 
+  public getCashDividendTransactionTotalValueText(cashDividendTransaction: CashDividendTransaction) {
+    return 'Total value (dividend - [tax + commissions]) =\n'
+      + ` (${this.moneyService.formatMoney(cashDividendTransaction.dividend, cashDividendTransaction.dividendCurrency)}`
+      + ` - [${this.moneyService.formatMoney(cashDividendTransaction.tax, cashDividendTransaction.taxCurrency)}`
+      + ` + ${this.moneyService.formatMoney(cashDividendTransaction.commission, cashDividendTransaction.commissionCurrency)}])`;
+  }
+
   public getStockDividendTransactionById(id: string) {
     return this.requestsService.getRequest(`stockdividendtransactions/${id}/`).pipe(
       map((response) => {
@@ -118,6 +152,21 @@ export class DashboardService {
     return new Company(
       response.uuid,
       response.name
+    );
+  }
+
+  public getUserBrokersFromResponse(response) {
+    const userBrokers: UserBroker[] = [];
+    for (const userBroker of response) {
+      userBrokers.push(this.getUserBrokerFromResponse(userBroker));
+    }
+    return userBrokers;
+  }
+
+  public getUserBrokerFromResponse(response) {
+    return new UserBroker(
+      response.uuid,
+      response.broker_name
     );
   }
 
@@ -161,7 +210,7 @@ export class DashboardService {
       response.commission_currency,
       response.total_value,
       response.total_value_currency,
-      response.broker_name,
+      this.getUserBrokerFromResponse(response.broker),
     );
   }
 
@@ -206,7 +255,7 @@ export class DashboardService {
       response.commission_currency,
       response.total_value,
       response.total_value_currency,
-      response.broker_name,
+      this.getUserBrokerFromResponse(response.broker),
     );
   }
 
@@ -224,7 +273,7 @@ export class DashboardService {
       this.getCompanyStockFromResponse(response.company_stock),
       response.stock_quantity,
       new Date(response.date),
-      response.broker_name,
+      this.getUserBrokerFromResponse(response.broker),
     );
   }
 

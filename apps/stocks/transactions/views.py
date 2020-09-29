@@ -1,8 +1,24 @@
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
-    StockSplitTransaction
+    StockSplitTransaction, UserBroker
 from apps.stocks.transactions.serializers import StockTransactionSerializer, CashDividendTransactionSerializer, \
-    StockDividendTransactionSerializer, StockSplitTransactionSerializer
+    StockDividendTransactionSerializer, StockSplitTransactionSerializer, UserBrokerSerializer
 from main.views import ProtectedModelViewSet
+
+
+class UserBrokerViewSet(ProtectedModelViewSet):
+    model = UserBroker
+    queryset = model.objects.none()
+    serializer_class = UserBrokerSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser:
+            queryset = self.model.objects.all()
+        else:
+            queryset = self.model.objects.filter(user=user)
+
+        return queryset
 
 
 class StockTransactionViewSet(ProtectedModelViewSet):

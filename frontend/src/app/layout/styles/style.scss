@@ -58,7 +58,6 @@ mat-spinner {
   flex: 4;
 }
 
-
 .row:first-child .cell {
   display: flex;
   justify-content: center;
@@ -68,4 +67,14 @@ mat-spinner {
 .row .cell {
   box-sizing: border-box;
   text-align: center;
+}
+
+.row-small {
+  width: 270px;
+  font-size: 0.71rem;
+  border: none;
+}
+
+.row-right {
+  margin: auto 0px auto auto;
 }

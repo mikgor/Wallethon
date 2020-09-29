@@ -11,6 +11,19 @@ from main import rules
 from main.models import BaseModel, User
 
 
+class UserBroker(BaseModel):
+    broker_name = models.CharField(max_length=64)
+    user = models.ForeignKey(User, models.PROTECT)
+
+    class Meta:
+        rules_permissions = {
+            "view": rules.is_object_owner,
+            "add": rules.is_authenticated,
+            "change": rules.is_object_owner,
+            "delete": rules.is_object_owner
+        }
+
+
 class StockTransaction(BaseModel):
     TRANSACTION_TYPE_BUY = 'BUY'
     TRANSACTION_TYPE_SELL = 'SELL'
@@ -20,7 +33,7 @@ class StockTransaction(BaseModel):
     )
 
     type = models.CharField(max_length=30, choices=TRANSACTION_TYPE_CHOICES)
-    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     per_stock_price = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                                  validators=[MinMoneyValidator(Decimal('0.01'))])
@@ -31,7 +44,7 @@ class StockTransaction(BaseModel):
     total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
-    broker_name = models.CharField(max_length=64)
+    broker = models.ForeignKey(UserBroker, models.PROTECT)
 
     class Meta:
         rules_permissions = {
@@ -60,7 +73,7 @@ class StockTransaction(BaseModel):
 
 
 class CashDividendTransaction(BaseModel):
-    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
     dividend = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
                           validators=[MinMoneyValidator(Decimal('0.01'))])
     commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
@@ -70,7 +83,7 @@ class CashDividendTransaction(BaseModel):
     total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
-    broker_name = models.CharField(max_length=64)
+    broker = models.ForeignKey(UserBroker, models.PROTECT)
 
     class Meta:
         rules_permissions = {
@@ -93,11 +106,11 @@ class CashDividendTransaction(BaseModel):
 
 
 class StockDividendTransaction(BaseModel):
-    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
-    broker_name = models.CharField(max_length=64)
+    broker = models.ForeignKey(UserBroker, models.PROTECT)
 
     class Meta:
         rules_permissions = {
@@ -109,7 +122,7 @@ class StockDividendTransaction(BaseModel):
 
 
 class StockSplitTransaction(BaseModel):
-    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
+    company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
     exchange_ratio_from = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     exchange_ratio_for = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
     optional = models.BooleanField(default=False)

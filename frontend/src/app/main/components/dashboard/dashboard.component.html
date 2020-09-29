@@ -8,6 +8,28 @@
   </mat-card>
 </div>
 <span *ngIf="dataLoaded">
+  <div class="row row-small row-right">
+    <div class="cell">
+      <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
+      {{buyStockTransactionsCounter}}
+    </div>
+    <div class="cell">
+      <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
+      {{sellStockTransactionsCounter}}
+    </div>
+    <div class="cell">
+      <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
+      {{stockSplitTransactions.length}}
+    </div>
+    <div class="cell">
+      <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+      {{cashDividendTransactions.length}}
+    </div>
+    <div class="cell">
+      <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
+      {{stockDividendTransactions.length}}
+    </div>
+  </div>
   <span class="flex-table">
     <span *ngFor="let transaction of transactions;" [ngSwitch]="getTransactionType(transaction)">
     <ng-container *ngSwitchCase="'StockTransaction'">
@@ -29,11 +51,10 @@
         <div class="cell" title="Price per stock">
           {{moneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
         </div>
-        <div class="cell" title="Total value (price per stock * stock quantity + tax + commissions) =
-({{transaction.perStockPrice}} {{transaction.perStockPriceCurrency}} * {{transaction.stockQuantity}} + {{transaction.tax}} {{transaction.taxCurrency}} + {{transaction.commission}} {{transaction.commissionCurrency}})">
+        <div class="cell" title="{{dashboardService.getStockTransactionTotalValueText(transaction)}}">
           <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
-        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+        <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>
     </ng-container>
     <ng-container *ngSwitchCase="'StockSplitTransaction'">
@@ -51,7 +72,7 @@
         <div class="cell"></div>
       </div>
     </ng-container>
-      <ng-container *ngSwitchCase="'CashDividendTransaction'">
+    <ng-container *ngSwitchCase="'CashDividendTransaction'">
       <div class="row cash-dividend-transaction">
         <div class="cell">
           <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend">pie_chart</mat-icon>
@@ -62,14 +83,13 @@
         <div class="cell" title="Dividend">
           {{moneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
         </div>
-        <div class="cell" title="Total value (dividend - [tax + commissions]) =
-({{transaction.dividend}} {{transaction.dividendCurrency}} - [{{transaction.tax}} {{transaction.taxCurrency}} + {{transaction.commission}} {{transaction.commissionCurrency}}])">
+        <div class="cell" title="{{dashboardService.getCashDividendTransactionTotalValueText(transaction)}}">
           <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
-        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+        <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>
     </ng-container>
-      <ng-container *ngSwitchCase="'StockDividendTransaction'">
+    <ng-container *ngSwitchCase="'StockDividendTransaction'">
       <div class="row stock-dividend-transaction">
         <div class="cell">
           <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend">pie_chart</mat-icon>
@@ -79,7 +99,7 @@
         <div class="cell" title="Stock quantity"> {{transaction.stockQuantity}}</div>
         <div class="cell"></div>
         <div class="cell"></div>
-        <div class="cell" title="Broker">{{transaction.brokerName}}</div>
+        <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>
     </ng-container>
   </span>

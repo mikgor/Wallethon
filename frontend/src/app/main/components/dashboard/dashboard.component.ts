@@ -14,13 +14,15 @@ import {MoneyService} from '../../../shared/services/money.service';
 })
 export class DashboardComponent implements OnInit {
   stockTransactions: StockTransaction[];
+  buyStockTransactionsCounter = 0;
+  sellStockTransactionsCounter = 0;
   stockSplitTransactions: StockSplitTransaction[];
   cashDividendTransactions: CashDividendTransaction[];
   stockDividendTransactions: StockDividendTransaction[];
   transactions = [];
   dataLoaded = false;
 
-  constructor(private dashboardService: DashboardService,
+  constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,
               public moneyService: MoneyService,
               ) { }
@@ -42,6 +44,8 @@ export class DashboardComponent implements OnInit {
 
   private stockTransactionsLoaded(stockTransactions) {
     this.stockTransactions = stockTransactions;
+    this.buyStockTransactionsCounter = this.stockTransactions.filter(t => t.type === 'BUY').length;
+    this.sellStockTransactionsCounter = this.stockTransactions.length - this.buyStockTransactionsCounter;
     this.dataOnLoad();
   }
 
