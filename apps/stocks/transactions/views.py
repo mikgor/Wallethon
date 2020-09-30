@@ -76,10 +76,16 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
         filtered = self.request.query_params.get('filtered')
 
+        # Filter
         if filtered:
-            user_stock_transactions_ids = StockTransaction.objects.filter(user=user)\
-                .values_list('company_stock__id').distinct()
-            queryset = self.model.objects.filter(company_stock__id__in=user_stock_transactions_ids)
+            user_stock_transactions = StockTransaction.objects.filter(user=user)\
+                .values_list('company_stock__id').distinct().order_by('date')
+            latest_date = user_stock_transactions.values_list('date').first()[0]
+            earliest_date = user_stock_transactions.values_list('date').last()[0]
+
+            queryset = self.model.objects.filter(
+                company_stock__id__in=user_stock_transactions,
+                pay_date__lte=earliest_date, pay_date__gte=latest_date)
         else:
             queryset = self.model.objects.all()
 

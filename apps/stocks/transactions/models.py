@@ -23,6 +23,9 @@ class UserBroker(BaseModel):
             "delete": rules.is_object_owner
         }
 
+    def clean(self):
+        self.broker_name = self.broker_name.title()
+
 
 class StockTransaction(BaseModel):
     TRANSACTION_TYPE_BUY = 'BUY'

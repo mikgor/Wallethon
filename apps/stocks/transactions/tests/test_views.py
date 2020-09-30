@@ -19,7 +19,7 @@ class UserBrokerViewSetTestCase(ViewTestCase):
 
         data = {
             'user': user.id,
-            'broker_name': self.faker.company()
+            'broker_name': self.faker.company().title()
         }
 
         return data
@@ -37,13 +37,21 @@ class UserBrokerViewSetTestCase(ViewTestCase):
                              data=self.__user_broker_data_helper(), auth_user=self.superuser)
 
         data = self.__user_broker_data_helper()
-        data['broker_name'] = self.faker.company()
+        data['broker_name'] = self.faker.company().upper()
 
         update_response = self.put(endpoint='/api/v1/userbrokers/{id}/'.format(id=response.data['uuid']),
                                    data=data, auth_user=self.superuser)
 
         self.assertEqual(update_response.status_code, 200)
-        self.assertEqual(update_response.data['broker_name'], data['broker_name'])
+        self.assertEqual(update_response.data['broker_name'], data['broker_name'].title())
+
+        data['broker_name'] = self.faker.company().lower()
+
+        update_response = self.put(endpoint='/api/v1/userbrokers/{id}/'.format(id=response.data['uuid']),
+                                   data=data, auth_user=self.superuser)
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.data['broker_name'], data['broker_name'].title())
 
     def test_update_user_broker_permissions(self):
         user, _ = self.create_user()
