@@ -1,3 +1,7 @@
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
     StockSplitTransaction, UserBroker
 from apps.stocks.transactions.serializers import StockTransactionSerializer, CashDividendTransactionSerializer, \
@@ -76,16 +80,38 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
         filtered = self.request.query_params.get('filtered')
 
-        # Filter
+        # Return only stock splits when user has more than 0 quantity of splitted stock
         if filtered:
-            user_stock_transactions = StockTransaction.objects.filter(user=user)\
-                .values_list('company_stock__id').distinct().order_by('date')
-            latest_date = user_stock_transactions.values_list('date').first()[0]
-            earliest_date = user_stock_transactions.values_list('date').last()[0]
+            user_stock_transactions = StockTransaction.objects.filter(user=user)
+            user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user)
 
-            queryset = self.model.objects.filter(
-                company_stock__id__in=user_stock_transactions,
-                pay_date__lte=earliest_date, pay_date__gte=latest_date)
+            # {'stock_id': total_stock_quantity}
+            stocks_amounts = {}
+
+            # Sum user's buy and sell (with minus sign) transactions' quantities
+            for transaction in user_stock_transactions:
+                stock_id = transaction.company_stock.id
+                stock_quantity = transaction.stock_quantity
+
+                if transaction.type == 'SELL':
+                    stock_quantity *= -1
+
+                if stock_id in stocks_amounts:
+                    stocks_amounts[stock_id] += stock_quantity
+                else:
+                    stocks_amounts[stock_id] = stock_quantity
+
+            # Sum user's dividend transactions' quantities
+            for dividend_transaction in user_stock_dividend_transactions:
+                stock_id = dividend_transaction.company_stock.id
+                if stock_id in stocks_amounts:
+                    stocks_amounts[stock_id] += dividend_transaction.stock_quantity
+                else:
+                    stocks_amounts[stock_id] = dividend_transaction.stock_quantity
+
+            filtered_stocks_amounts = {stock: amount for (stock, amount) in stocks_amounts.items() if amount > 0}
+
+            queryset = self.model.objects.filter(company_stock__id__in=filtered_stocks_amounts.keys())
         else:
             queryset = self.model.objects.all()
 
