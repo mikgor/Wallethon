@@ -6,6 +6,7 @@ import {StockSplitTransaction} from './models/StockSplitTransaction';
 import {StockDividendTransaction} from './models/StockDividendTransaction';
 import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
+import {BrokerSummary, TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,11 +21,14 @@ export class DashboardComponent implements OnInit {
   cashDividendTransactions: CashDividendTransaction[];
   stockDividendTransactions: StockDividendTransaction[];
   transactions = [];
+  summaries: BrokerSummary[];
   dataLoaded = false;
+
+  public moneyService = MoneyService;
 
   constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,
-              public moneyService: MoneyService,
+              public transactionsSummaryService: TransactionsSummaryService,
               ) { }
 
   ngOnInit(): void {
@@ -72,13 +76,8 @@ export class DashboardComponent implements OnInit {
       this.transactions = this.transactions.concat(this.cashDividendTransactions);
       this.transactions = this.transactions.concat(this.stockDividendTransactions);
       this.transactions.sort(this.dateTimeService.sortByDateDesc);
+      this.summaries = this.transactionsSummaryService.getSummaries(this.transactions);
       this.dataLoaded = true;
     }
   }
-
-  public getTransactionType(transaction) {
-    return transaction.constructor.name;
-  }
-
-
 }

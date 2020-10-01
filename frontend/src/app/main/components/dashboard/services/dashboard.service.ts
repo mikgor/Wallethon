@@ -85,14 +85,6 @@ export class DashboardService {
     );
   }
 
-  public getStockTransactionTotalValueText(stockTransaction: StockTransaction) {
-    return 'Total value (price per stock * stock quantity + tax + commissions) =\n'
-      + ` (${this.moneyService.formatMoney(stockTransaction.perStockPrice, stockTransaction.perStockPriceCurrency)}`
-      + ` * ${stockTransaction.stockQuantity} +`
-      + ` ${this.moneyService.formatMoney(stockTransaction.tax, stockTransaction.taxCurrency)}`
-      + ` + ${this.moneyService.formatMoney(stockTransaction.commission, stockTransaction.commissionCurrency)})`;
-  }
-
   public getStockSplitTransactionById(id: string) {
     return this.requestsService.getRequest(`stocksplittransactions/${id}/`).pipe(
       map((response) => {
@@ -123,13 +115,6 @@ export class DashboardService {
         return this.getCashDividendTransactionsFromResponse(response);
       })
     );
-  }
-
-  public getCashDividendTransactionTotalValueText(cashDividendTransaction: CashDividendTransaction) {
-    return 'Total value (dividend - [tax + commissions]) =\n'
-      + ` (${this.moneyService.formatMoney(cashDividendTransaction.dividend, cashDividendTransaction.dividendCurrency)}`
-      + ` - [${this.moneyService.formatMoney(cashDividendTransaction.tax, cashDividendTransaction.taxCurrency)}`
-      + ` + ${this.moneyService.formatMoney(cashDividendTransaction.commission, cashDividendTransaction.commissionCurrency)}])`;
   }
 
   public getStockDividendTransactionById(id: string) {

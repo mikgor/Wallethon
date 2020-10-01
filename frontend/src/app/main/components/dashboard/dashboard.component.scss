@@ -2,6 +2,10 @@
   color: #1B8A6B;
 }
 
+.red {
+  color: #f44336;
+}
+
 .golden {
   color: #D4AF37;
 }
@@ -12,6 +16,10 @@
 
 .dark-blue {
   color: #0042fb;
+}
+
+.blueviolet {
+  color: blueviolet;
 }
 
 mat-grid-tile {
@@ -37,3 +45,46 @@ mat-grid-tile {
 .stock-dividend-transaction {
   border-color: #0042fb;
 }
+
+.summary {
+  margin-bottom: 15px;
+}
+
+.summary-broker {
+  font-weight: bold;
+}
+
+.summary-stock {
+  display: inline-block;
+  margin-right: 15px;
+  margin-bottom: 15px;
+  min-height: 50px;
+  border: 1px solid #efefef;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.summary-stock-symbol {
+  background-color: #efefef;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.summary-stock-details-total-quantity {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.summary-stock-details-container {
+  padding: 7px;
+  font-size: 15px;
+}
+
+.summary-stock-details-container .material-icons {
+  font-size: 18px;
+}
+
+.summary-stock-details-container .mat-icon {
+  width: 18px;
+}
+

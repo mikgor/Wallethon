@@ -1,5 +1,6 @@
 import {CompanyStock} from './CompanyStock';
 import {UserBroker} from './UserBroker';
+import {MoneyService} from "../../../../shared/services/money.service";
 
 export class StockTransaction {
   id: string;
@@ -35,5 +36,13 @@ export class StockTransaction {
     this.totalValue = totalValue;
     this.totalValueCurrency = totalValueCurrency;
     this.broker = broker;
+  }
+
+  public getTotalValueText() {
+    return 'Total value (price per stock * stock quantity + tax + commissions) =\n'
+      + ` (${MoneyService.formatMoney(this.perStockPrice, this.perStockPriceCurrency)}`
+      + ` * ${this.stockQuantity} +`
+      + ` ${MoneyService.formatMoney(this.tax, this.taxCurrency)}`
+      + ` + ${MoneyService.formatMoney(this.commission, this.commissionCurrency)})`;
   }
 }

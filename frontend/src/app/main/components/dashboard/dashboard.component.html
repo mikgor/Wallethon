@@ -8,6 +8,48 @@
   </mat-card>
 </div>
 <span *ngIf="dataLoaded">
+  <h3>Summary</h3>
+  <span *ngFor="let summary of summaries;">
+    <div class="summary">
+      <div class="summary-broker">{{summary.broker.name}}</div>
+      <span *ngFor="let stockSummary of summary.stockSummaries;">
+        <div class="summary-stock">
+          <div class="summary-stock-symbol">{{stockSummary.companyStock.symbol}}</div>
+          <span *ngFor="let stockCurrencySummary of stockSummary.stockCurrencySummaries;">
+            <div class="summary-stock-details-container">
+              <div class="summary-stock-details">
+                <div class="summary-stock-details-total-quantity" title="{{stockSummary.getTotalQuantityText()}}">
+                  <mat-icon class="blueviolet">track_changes</mat-icon> {{stockSummary.totalQuantity}}
+                </div>
+                <div>
+                  <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
+                  {{stockSummary.buyTransactionCounter}}
+                  <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
+                  {{stockSummary.sellTransactionCounter}}
+                  <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
+                  {{stockSummary.stockSplitCounter}}
+                  <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+                  {{stockSummary.cashDividendCounter}}
+                  <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
+                  {{stockSummary.stockDividendCounter}}
+                 </div>
+                <span title="Sum of buy transactions total values">
+                  <mat-icon class="green">account_balance</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
+                </span>
+                <span title="Sum of sell transactions total values">
+                  <mat-icon class="red">account_balance</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
+                </span>
+                <span title="Sum of stock dividend quantities">
+                  <mat-icon class="dark-blue">pie_chart</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
+                </span>
+              </div>
+            </div>
+          </span>
+        </div>
+      </span>
+    </div>
+  </span>
+  <h3>Transactions</h3>
   <div class="row row-small row-right">
     <div class="cell">
       <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
@@ -31,7 +73,7 @@
     </div>
   </div>
   <span class="flex-table">
-    <span *ngFor="let transaction of transactions;" [ngSwitch]="getTransactionType(transaction)">
+    <span *ngFor="let transaction of transactions;" [ngSwitch]="transactionsSummaryService.getTransactionType(transaction)">
     <ng-container *ngSwitchCase="'StockTransaction'">
       <div class="row {{transaction.type}}-transaction">
         <span *ngIf="transaction.type == 'BUY'; then thenBlock else elseBlock"></span>
@@ -51,7 +93,7 @@
         <div class="cell" title="Price per stock">
           {{moneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
         </div>
-        <div class="cell" title="{{dashboardService.getStockTransactionTotalValueText(transaction)}}">
+        <div class="cell" title="{{transaction.getTotalValueText()}}">
           <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>
@@ -83,7 +125,7 @@
         <div class="cell" title="Dividend">
           {{moneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
         </div>
-        <div class="cell" title="{{dashboardService.getCashDividendTransactionTotalValueText(transaction)}}">
+        <div class="cell" title="{{transaction.getTotalValueText()}}">
           <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>

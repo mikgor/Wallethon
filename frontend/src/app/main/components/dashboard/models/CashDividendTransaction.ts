@@ -1,5 +1,6 @@
 import {CompanyStock} from './CompanyStock';
 import {UserBroker} from './UserBroker';
+import {MoneyService} from "../../../../shared/services/money.service";
 
 
 export class CashDividendTransaction {
@@ -31,5 +32,12 @@ export class CashDividendTransaction {
     this.totalValue = totalValue;
     this.totalValueCurrency = totalValueCurrency;
     this.broker = broker;
+  }
+
+  public getTotalValueText() {
+    return 'Total value (dividend - [tax + commissions]) =\n'
+      + ` (${MoneyService.formatMoney(this.dividend, this.dividendCurrency)}`
+      + ` - [${MoneyService.formatMoney(this.tax, this.taxCurrency)}`
+      + ` + ${MoneyService.formatMoney(this.commission, this.commissionCurrency)}])`;
   }
 }
