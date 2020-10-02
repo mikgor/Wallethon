@@ -16,7 +16,7 @@ def populate_stock_splits_data(source, file_path=None):
 
             stock_split = StockSplitTransaction(
                 company_stock=company_stock.first(), pay_date=pay_date, optional=optional,
-                exchange_ratio_from=ratio_for, exchange_ratio_for=ratio_for)
+                exchange_ratio_from=ratio_from, exchange_ratio_for=ratio_for)
 
             stock_split_objects.append(stock_split)
 
