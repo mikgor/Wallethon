@@ -6,7 +6,8 @@ import {StockSplitTransaction} from './models/StockSplitTransaction';
 import {StockDividendTransaction} from './models/StockDividendTransaction';
 import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
-import {BrokerSummary, TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
+import {TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
+import {BrokerSummary} from '../../../shared/models/transactions-summary/broker-summary';
 
 @Component({
   selector: 'app-dashboard',
