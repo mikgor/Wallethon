@@ -1,7 +1,21 @@
 from apps.stocks.markets.models import Market, Company, MarketCompanyStock, CompanyStock
-from apps.stocks.markets.utils.utils import get_market_stock_companies
+from apps.stocks.markets.utils import nasdaq, gpw, nyse_bats_iexg_stocks
 
-MARKETS = {'NASDAQ'}
+MARKETS = {'NASDAQ', 'GPW', *nyse_bats_iexg_stocks.MARKETS.keys()}
+
+
+def get_market_stock_companies(market_name, from_file=False, file_path=None):
+
+    if market_name == 'NASDAQ':
+        return nasdaq.get_stock_companies_symbols_tuples(from_file=from_file, file_path=file_path)
+
+    if market_name == 'GPW':
+        return gpw.get_stock_companies_symbols_tuples(file_path=file_path)
+
+    if market_name in nyse_bats_iexg_stocks.MARKETS.keys():
+        return nyse_bats_iexg_stocks.get_stock_companies_symbols_tuples(market_name=market_name, file_path=file_path)
+
+    return None
 
 
 def populate_stocks_data(market_name=None, from_file=True, file_path=None):
@@ -29,6 +43,7 @@ def populate_stocks_data(market_name=None, from_file=True, file_path=None):
 
 def populate_all_stocks_data():
     for market in MARKETS:
+        print(f'Populating {market}...')
         populate_stocks_data(market_name=market)
 
 
