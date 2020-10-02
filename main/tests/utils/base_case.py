@@ -1,5 +1,6 @@
 import pytz
 from django.test import TestCase
+from moneyed import Money
 
 from apps.stocks.markets.models import Market, Company, CompanyStock, MarketCompanyStock
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
@@ -129,7 +130,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def create_stock_transaction(cls, company_stock=None, transaction_type=None, quantity=0, per_stock_price=0,
-                                 commission=0, tax=0, date=None, user=None, broker=None) -> object:
+                                 currency='USD', commission=0, tax=0, date=None, user=None, broker=None) -> object:
         if transaction_type is None:
             transaction_type = cls.faker.stock_transaction_type()
 
@@ -156,9 +157,9 @@ class BaseTestCase(TestCase):
             type=transaction_type,
             company_stock=company_stock,
             stock_quantity=quantity,
-            per_stock_price=per_stock_price,
-            commission=commission,
-            tax=tax,
+            per_stock_price=Money(per_stock_price, currency=currency),
+            commission=Money(commission, currency=currency),
+            tax=Money(tax, currency=currency),
             date=date,
             user=user,
             broker=broker
@@ -168,7 +169,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def create_cash_dividend_transaction(cls, company_stock=None, dividend=0, commission=0, tax=0,
-                                         date=None, user=None, broker=None) -> object:
+                                         currency='USD', date=None, user=None, broker=None) -> object:
         if company_stock is None:
             company_stock = cls.create_company_stock()
 
@@ -187,9 +188,9 @@ class BaseTestCase(TestCase):
         cash_dividend_transaction = cls._create_model_instance(
             CashDividendTransaction,
             company_stock=company_stock,
-            dividend=dividend,
-            commission=commission,
-            tax=tax,
+            dividend=Money(dividend, currency=currency),
+            commission=Money(commission, currency=currency),
+            tax=Money(tax, currency=currency),
             date=date,
             user=user,
             broker=broker
