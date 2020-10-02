@@ -75,8 +75,8 @@ export class DashboardComponent implements OnInit {
       this.transactions = this.transactions.concat(this.stockSplitTransactions);
       this.transactions = this.transactions.concat(this.cashDividendTransactions);
       this.transactions = this.transactions.concat(this.stockDividendTransactions);
-      this.transactions.sort(this.dateTimeService.sortByDateDesc);
       this.summaries = this.transactionsSummaryService.getSummaries(this.transactions);
+      this.transactions.sort(this.dateTimeService.sortByDateDesc);
       this.dataLoaded = true;
     }
   }

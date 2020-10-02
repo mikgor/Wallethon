@@ -15,36 +15,42 @@
       <span *ngFor="let stockSummary of summary.stockSummaries;">
         <div class="summary-stock">
           <div class="summary-stock-symbol">{{stockSummary.companyStock.symbol}}</div>
-          <span *ngFor="let stockCurrencySummary of stockSummary.stockCurrencySummaries;">
-            <div class="summary-stock-details-container">
-              <div class="summary-stock-details">
-                <div class="summary-stock-details-total-quantity" title="{{stockSummary.getTotalQuantityText()}}">
-                  <mat-icon class="blueviolet">track_changes</mat-icon> {{stockSummary.totalQuantity}}
-                </div>
-                <div>
-                  <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
-                  {{stockSummary.buyTransactionCounter}}
-                  <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
-                  {{stockSummary.sellTransactionCounter}}
-                  <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
-                  {{stockSummary.stockSplitCounter}}
-                  <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
-                  {{stockSummary.cashDividendCounter}}
-                  <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
-                  {{stockSummary.stockDividendCounter}}
-                 </div>
-                <span title="Sum of buy transactions total values">
-                  <mat-icon class="green">account_balance</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
-                </span>
-                <span title="Sum of sell transactions total values">
-                  <mat-icon class="red">account_balance</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
-                </span>
-                <span title="Sum of stock dividend quantities">
-                  <mat-icon class="dark-blue">pie_chart</mat-icon> {{moneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
-                </span>
+          <div class="summary-stock-details-container">
+            <div class="summary-stock-details">
+              <div class="summary-stock-details-total-quantity" title="{{stockSummary.getTotalQuantityText()}}">
+                <mat-icon class="blueviolet">track_changes</mat-icon>
+                {{stockSummary.totalQuantity}}
               </div>
+              <div>
+                <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
+                {{stockSummary.buyTransactionCounter}}
+                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
+                {{stockSummary.sellTransactionCounter}}
+                <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
+                {{stockSummary.stockSplitCounter}}
+                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+                {{stockSummary.cashDividendCounter}}
+                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
+                {{stockSummary.stockDividendCounter}}
+              </div>
+              <span *ngFor="let stockCurrencySummary of stockSummary.stockCurrencySummaries;">
+                <div>
+                  <span title="Sum of buy transactions total values">
+                    <mat-icon class="green">account_balance</mat-icon>
+                    {{moneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
+                  </span>
+                  <span title="Sum of sell transactions total values">
+                    <mat-icon class="red">account_balance</mat-icon>
+                    {{moneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
+                  </span>
+                  <span title="Sum of cash dividend quantities">
+                    <mat-icon class="blue">pie_chart</mat-icon>
+                    {{moneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
+                  </span>
+                </div>
+              </span>
             </div>
-          </span>
+          </div>
         </div>
       </span>
     </div>

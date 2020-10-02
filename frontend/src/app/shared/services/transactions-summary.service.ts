@@ -91,7 +91,7 @@ export class StockSummary {
   public calculateStockSplitTransaction(stockSplitTransaction: StockSplitTransaction) {
     this.stockSplitCounter += 1;
     this.totalQuantity =
-      (this.totalQuantity * stockSplitTransaction.exchangeRatioFrom) / stockSplitTransaction.exchangeRatioFor;
+      (this.totalQuantity * stockSplitTransaction.exchangeRatioFor) / stockSplitTransaction.exchangeRatioFrom;
   }
 
   public calculateCashDividendTransaction(cashDividendTransaction: CashDividendTransaction) {
@@ -197,7 +197,7 @@ export class TransactionsSummaryService {
   }
 
   public getSummaries(transactions, toDate: Date = null) {
-    let preparedTransactions = transactions.sort(this.dateTimeService.sortByDateAsc);
+    let preparedTransactions = [...transactions].sort(this.dateTimeService.sortByDateAsc);
     if (toDate) {
       preparedTransactions = preparedTransactions.filter(t => t.date.getTime() <= toDate.getTime());
     }

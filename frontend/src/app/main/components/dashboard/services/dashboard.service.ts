@@ -209,13 +209,16 @@ export class DashboardService {
   }
 
   public getStockSplitTransactionFromResponse(response) {
+    const date = new Date(response.pay_date);
+    date.setHours(0, 0, 0, 0);
+
     return new StockSplitTransaction(
       response.uuid,
       this.getCompanyStockFromResponse(response.company_stock),
       response.exchange_ratio_from,
       response.exchange_ratio_for,
       response.optional,
-      new Date(response.pay_date),
+      date,
     );
   }
 
