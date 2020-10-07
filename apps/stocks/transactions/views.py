@@ -1,4 +1,5 @@
-from rest_framework.permissions import IsAuthenticated
+import datetime
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -6,6 +7,7 @@ from apps.stocks.transactions.models import StockTransaction, CashDividendTransa
     StockSplitTransaction, UserBroker
 from apps.stocks.transactions.serializers import StockTransactionSerializer, CashDividendTransactionSerializer, \
     StockDividendTransactionSerializer, StockSplitTransactionSerializer, UserBrokerSerializer
+from apps.stocks.utils.utils import get_currency_exchange_rate
 from main.views import ProtectedModelViewSet
 
 
@@ -116,3 +118,14 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
             queryset = self.model.objects.all()
 
         return queryset.order_by('-pay_date')
+
+
+class ExchangeView(APIView):
+    http_method_names = ['get']
+
+    def get(self, request):
+        currency_from = self.request.query_params.get('from')
+        currency_to = self.request.query_params.get('to')
+        currency_date = datetime.datetime.strptime(self.request.query_params.get('date'), '%Y-%m-%d').date()
+
+        return Response(get_currency_exchange_rate(currency_from, currency_to, currency_date))

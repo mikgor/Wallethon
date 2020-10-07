@@ -1,6 +1,6 @@
 import {CompanyStock} from './CompanyStock';
 import {UserBroker} from './UserBroker';
-import {MoneyService} from "../../../../shared/services/money.service";
+import {MoneyService} from '../../../../shared/services/money.service';
 
 
 export class CashDividendTransaction {
@@ -23,13 +23,13 @@ export class CashDividendTransaction {
     this.id = id;
     this.companyStock = companyStock;
     this.date = date;
-    this.dividend = dividend;
+    this.dividend = Number(dividend);
     this.dividendCurrency = dividendCurrency;
-    this.tax = tax;
+    this.tax = Number(tax);
     this.taxCurrency = taxCurrency;
-    this.commission = commission;
+    this.commission = Number(commission);
     this.commissionCurrency = commissionCurrency;
-    this.totalValue = totalValue;
+    this.totalValue = Number(totalValue);
     this.totalValueCurrency = totalValueCurrency;
     this.broker = broker;
   }

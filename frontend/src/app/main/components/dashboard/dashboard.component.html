@@ -37,15 +37,15 @@
                 <div>
                   <span title="Sum of buy transactions total values">
                     <mat-icon class="green">account_balance</mat-icon>
-                    {{moneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
+                    {{MoneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
                   </span>
                   <span title="Sum of sell transactions total values">
                     <mat-icon class="red">account_balance</mat-icon>
-                    {{moneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
+                    {{MoneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
                   </span>
                   <span title="Sum of cash dividend quantities">
                     <mat-icon class="blue">pie_chart</mat-icon>
-                    {{moneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
+                    {{MoneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
                   </span>
                 </div>
               </span>
@@ -54,6 +54,57 @@
         </div>
       </span>
     </div>
+  </span>
+  <h3>Income and tax</h3>
+  <button mat-raised-button color="primary" (click)="showIncomeAndTaxData()">Show income and tax</button>
+  <span *ngIf="showIncomeAndTax">
+    <div *ngIf="!incomeAndTaxDataLoaded">
+  <mat-card>
+    <mat-card-content>
+      <h2>Loading data</h2>
+      <mat-spinner></mat-spinner>
+    </mat-card-content>
+  </mat-card>
+</div>
+    <p>Stocks income: {{MoneyService.formatMoney(brokersTotalIncomeSummary.income(), incomeAndTaxCurrency)}}</p>
+    <p>Stocks income tax: {{MoneyService.formatMoney(brokersTotalIncomeSummary.incomeTax(), incomeAndTaxCurrency)}}</p>
+    <p>Cash dividend income: {{MoneyService.formatMoney(brokersTotalIncomeSummary.cashDividendIncome(), incomeAndTaxCurrency)}}</p>
+    <p>Cash dividend income tax: {{MoneyService.formatMoney(brokersTotalIncomeSummary.cashDividendIncomeTax(), incomeAndTaxCurrency)}}</p>
+    <span class="flex-table">
+      <span *ngFor="let broker of brokersTotalIncomeSummary.brokerIncomeSummaries">
+        <h4>{{broker.broker.name}}</h4>
+            <div class="row row-small row-right">
+              <div class="cell">
+                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions income">attach_money</mat-icon>
+                {{MoneyService.formatMoney(broker.income(), incomeAndTaxCurrency)}}
+              </div>
+              <div class="cell">
+              <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions income">pie_chart</mat-icon>
+                {{MoneyService.formatMoney(broker.cashDividendIncome(), incomeAndTaxCurrency)}}
+             </div>
+            </div>
+            <span *ngFor="let stockIncomeSummary of broker.stockIncomeSummaries">
+              <div class="row {{stockIncomeSummary.sellTransaction.type}}-transaction">
+                <div class="cell">
+                  <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell">attach_money</mat-icon>
+                </div>
+                <div class="cell">{{stockIncomeSummary.sellTransaction.date.toLocaleString()}}</div>
+                <div class="cell">{{stockIncomeSummary.sellTransaction.companyStock.symbol}}</div>
+                <div class="cell" title="Income"><b>{{MoneyService.formatMoney(stockIncomeSummary.income(), incomeAndTaxCurrency)}}</b></div>
+              </div>
+            </span>
+            <span *ngFor="let cashDividendIncomeTransaction of broker.cashDividendIncomeTransactions">
+              <div class="row cash-dividend-transaction">
+                <div class="cell">
+                  <mat-icon aria-hidden="false" aria-label="Cash dividend transactions" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+                </div>
+                <div class="cell">{{cashDividendIncomeTransaction.cashDividendTransaction.date.toLocaleString()}}</div>
+                <div class="cell">{{cashDividendIncomeTransaction.cashDividendTransaction.companyStock.symbol}}</div>
+                <div class="cell" title="Income"><b>{{MoneyService.formatMoney(cashDividendIncomeTransaction.cashDividendIncome(), incomeAndTaxCurrency)}}</b></div>
+              </div>
+            </span>
+      </span>
+    </span>
   </span>
   <h3>Transactions</h3>
   <div class="row row-small row-right">
@@ -97,10 +148,10 @@
         <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
         <div class="cell" title="Stock quantity">{{transaction.stockQuantity}}</div>
         <div class="cell" title="Price per stock">
-          {{moneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
+          {{MoneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
         </div>
         <div class="cell" title="{{transaction.getTotalValueText()}}">
-          <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+          <b>{{MoneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>
@@ -129,10 +180,10 @@
         <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
         <div class="cell"></div>
         <div class="cell" title="Dividend">
-          {{moneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
+          {{MoneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
         </div>
         <div class="cell" title="{{transaction.getTotalValueText()}}">
-          <b>{{moneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+          <b>{{MoneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>

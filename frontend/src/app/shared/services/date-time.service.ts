@@ -15,4 +15,8 @@ export class DateTimeService {
     if (a.date > b.date) { return 1; }
     if (a.date < b.date) { return -1; }
   }
+
+  public addDaysToDate(date: Date, days: number){
+    return new Date(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  }
 }

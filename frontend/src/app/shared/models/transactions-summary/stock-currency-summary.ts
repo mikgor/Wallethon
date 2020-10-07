@@ -16,14 +16,14 @@ export class StockCurrencySummary {
 
   public calculateStockTransaction(stockTransaction: StockTransaction) {
     if (stockTransaction.type === 'BUY') {
-      this.boughtMoney += Number(stockTransaction.totalValue);
+      this.boughtMoney += stockTransaction.totalValue;
     }
     if (stockTransaction.type === 'SELL') {
-      this.soldMoney += Number(stockTransaction.totalValue);
+      this.soldMoney += stockTransaction.totalValue;
     }
   }
 
   public calculateCashDividendTransaction(cashDividendTransaction: CashDividendTransaction) {
-    this.dividend += Number(cashDividendTransaction.totalValue);
+    this.dividend += cashDividendTransaction.totalValue;
   }
 }

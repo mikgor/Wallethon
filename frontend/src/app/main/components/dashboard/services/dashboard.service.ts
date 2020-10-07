@@ -8,7 +8,6 @@ import {StockSplitTransaction} from '../models/StockSplitTransaction';
 import {RequestsService} from '../../../../shared/services/requests.service';
 import {StockDividendTransaction} from '../models/StockDividendTransaction';
 import {CashDividendTransaction} from '../models/CashDividendTransaction';
-import {MoneyService} from '../../../../shared/services/money.service';
 import {UserBroker} from '../models/UserBroker';
 
 @Injectable({
@@ -18,7 +17,6 @@ export class DashboardService {
   constructor(
     private http: HttpClient,
     private requestsService: RequestsService,
-    private moneyService: MoneyService,
   ) {}
 
   public getCompanies() {

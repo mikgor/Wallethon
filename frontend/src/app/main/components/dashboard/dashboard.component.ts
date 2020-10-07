@@ -8,6 +8,7 @@ import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
 import {TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
 import {BrokerSummary} from '../../../shared/models/transactions-summary/broker-summary';
+import {BrokersTotalIncomeSummary} from "../../../shared/models/transactions-summary/brokers-total-income-summary";
 
 @Component({
   selector: 'app-dashboard',
@@ -23,9 +24,12 @@ export class DashboardComponent implements OnInit {
   stockDividendTransactions: StockDividendTransaction[];
   transactions = [];
   summaries: BrokerSummary[];
+  brokersTotalIncomeSummary: BrokersTotalIncomeSummary;
+  showIncomeAndTax = false;
+  incomeAndTaxCurrency = 'PLN';
   dataLoaded = false;
-
-  public moneyService = MoneyService;
+  incomeAndTaxDataLoaded = false;
+  MoneyService = MoneyService;
 
   constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,
@@ -80,5 +84,12 @@ export class DashboardComponent implements OnInit {
       this.transactions.sort(this.dateTimeService.sortByDateDesc);
       this.dataLoaded = true;
     }
+  }
+
+  public showIncomeAndTaxData() {
+    const tax = 0.19;
+    this.showIncomeAndTax = true;
+    this.brokersTotalIncomeSummary = this.transactionsSummaryService.getIncomeAndTax(this.incomeAndTaxCurrency, tax);
+    this.incomeAndTaxDataLoaded = true;
   }
 }

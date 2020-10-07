@@ -12,7 +12,7 @@ export class StockDividendTransaction {
               broker: UserBroker) {
     this.id = id;
     this.companyStock = companyStock;
-    this.stockQuantity = stockQuantity;
+    this.stockQuantity = Number(stockQuantity);
     this.date = date;
     this.broker = broker;
   }

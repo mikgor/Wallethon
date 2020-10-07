@@ -12,8 +12,8 @@ export class StockSplitTransaction {
               exchangeRatioFor: number, optional: boolean, payDate: Date) {
     this.id = id;
     this.companyStock = companyStock;
-    this.exchangeRatioFrom = exchangeRatioFrom;
-    this.exchangeRatioFor = exchangeRatioFor;
+    this.exchangeRatioFrom = Number(exchangeRatioFrom);
+    this.exchangeRatioFor = Number(exchangeRatioFor);
     this.optional = optional;
     this.date = payDate;
   }

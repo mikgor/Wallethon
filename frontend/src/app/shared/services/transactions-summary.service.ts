@@ -7,6 +7,10 @@ import {StockDividendTransaction} from '../../main/components/dashboard/models/S
 import {DateTimeService} from './date-time.service';
 import {StockSummary} from '../models/transactions-summary/stock-summary';
 import {BrokerSummary} from '../models/transactions-summary/broker-summary';
+import {MoneyService} from './money.service';
+import {StockIncomeSummary} from "../models/transactions-summary/stock-income-summary";
+import {BrokersTotalIncomeSummary} from "../models/transactions-summary/brokers-total-income-summary";
+import {CashDividendIncome} from "../models/transactions-summary/cash-dividend-income";
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +19,7 @@ import {BrokerSummary} from '../models/transactions-summary/broker-summary';
 export class TransactionsSummaryService {
   brokersSummaries: BrokerSummary[];
 
-  constructor(private dateTimeService: DateTimeService) {
+  constructor(private dateTimeService: DateTimeService, private moneyService: MoneyService) {
     this.brokersSummaries = [];
   }
 
@@ -74,5 +78,43 @@ export class TransactionsSummaryService {
       this.updateBrokerSummary(brokerSummary);
     }
     return this.brokersSummaries;
+  }
+
+  public calculateCashDividendTransactionIncome(cashDividendIncome: CashDividendIncome, currency: string) {
+    const cashDividendTransaction = cashDividendIncome.cashDividendTransaction;
+    this.moneyService.getExchangedValue(cashDividendTransaction.totalValue,
+      cashDividendTransaction.date, cashDividendTransaction.totalValueCurrency, currency).subscribe(response =>
+            cashDividendIncome.updateCashDividendOutcome(response));
+  }
+
+  public calculateStockIncomeSummaryIncome(stockIncomeSummary: StockIncomeSummary, currency: string) {
+    const sellTransaction = stockIncomeSummary.sellTransaction;
+    this.moneyService.getExchangedValue(sellTransaction.totalValue,
+      sellTransaction.date, sellTransaction.totalValueCurrency, currency).subscribe(response =>
+            stockIncomeSummary.updateOutcome(-response));
+
+    for (const extendedTransaction of stockIncomeSummary.extendedTransactions) {
+      const extendedTransactionValue = extendedTransaction.getRemainingTotalValue();
+      if (!(extendedTransaction.transaction instanceof StockDividendTransaction)) {
+        this.moneyService.getExchangedValue(extendedTransactionValue, extendedTransaction.transaction.date,
+          extendedTransaction.transaction.totalValueCurrency, currency).subscribe(response =>
+          stockIncomeSummary.addToRevenue(response));
+      }
+    }
+  }
+
+  public getIncomeAndTax(currency: string, tax: number) {
+    const brokerIncomeSummaries = [];
+    for (const brokerSummary of this.brokersSummaries) {
+      const brokerIncomeSummary = brokerSummary.getIncomeData();
+      for (const stockIncomeSummary of brokerIncomeSummary.stockIncomeSummaries) {
+        this.calculateStockIncomeSummaryIncome(stockIncomeSummary, currency);
+      }
+      for (const cashDividendIncomeTransaction of brokerIncomeSummary.cashDividendIncomeTransactions) {
+        this.calculateCashDividendTransactionIncome(cashDividendIncomeTransaction, currency);
+      }
+      brokerIncomeSummaries.push(brokerIncomeSummary);
+    }
+    return new BrokersTotalIncomeSummary(tax, brokerIncomeSummaries);
   }
 }

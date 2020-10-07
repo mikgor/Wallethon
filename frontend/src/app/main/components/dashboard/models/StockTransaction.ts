@@ -1,6 +1,6 @@
 import {CompanyStock} from './CompanyStock';
 import {UserBroker} from './UserBroker';
-import {MoneyService} from "../../../../shared/services/money.service";
+import {MoneyService} from '../../../../shared/services/money.service';
 
 export class StockTransaction {
   id: string;
@@ -26,14 +26,14 @@ export class StockTransaction {
     this.type = type;
     this.companyStock = companyStock;
     this.date = date;
-    this.perStockPrice = perStockPrice;
+    this.perStockPrice = Number(perStockPrice);
     this.perStockPriceCurrency = perStockPriceCurrency;
-    this.stockQuantity = stockQuantity;
-    this.tax = tax;
+    this.stockQuantity = Number(stockQuantity);
+    this.tax = Number(tax);
     this.taxCurrency = taxCurrency;
-    this.commission = commission;
+    this.commission = Number(commission);
     this.commissionCurrency = commissionCurrency;
-    this.totalValue = totalValue;
+    this.totalValue = Number(totalValue);
     this.totalValueCurrency = totalValueCurrency;
     this.broker = broker;
   }

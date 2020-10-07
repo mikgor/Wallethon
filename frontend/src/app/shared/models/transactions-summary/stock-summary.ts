@@ -4,10 +4,15 @@ import {StockSplitTransaction} from '../../../main/components/dashboard/models/S
 import {CashDividendTransaction} from '../../../main/components/dashboard/models/CashDividendTransaction';
 import {StockDividendTransaction} from '../../../main/components/dashboard/models/StockDividendTransaction';
 import {StockCurrencySummary} from './stock-currency-summary';
+import {ExtendedTransaction} from './extended-transaction';
+import {StockIncomeSummary} from './stock-income-summary';
 
 export class StockSummary {
   companyStock: CompanyStock;
   stockCurrencySummaries: StockCurrencySummary[];
+  extendedIncomeTransactions: ExtendedTransaction[];
+  cashDividendTransactions: CashDividendTransaction[];
+  stockIncomeSummaries: StockIncomeSummary[];
   buyTransactionCounter: number;
   sellTransactionCounter: number;
   cashDividendCounter: number;
@@ -20,6 +25,9 @@ export class StockSummary {
   constructor(companyStock: CompanyStock) {
     this.companyStock = companyStock;
     this.stockCurrencySummaries = [];
+    this.extendedIncomeTransactions = [];
+    this.cashDividendTransactions = [];
+    this.stockIncomeSummaries = [];
     this.buyTransactionCounter = 0;
     this.sellTransactionCounter = 0;
     this.cashDividendCounter = 0;
@@ -48,6 +56,10 @@ export class StockSummary {
     this.stockCurrencySummaries[this.getStockCurrencySummaryIndex(stockCurrencySummary.currency)] = stockCurrencySummary;
   }
 
+  private updateExtendedTransaction(extendedTransaction: ExtendedTransaction) {
+    this.extendedIncomeTransactions[this.extendedIncomeTransactions.indexOf(extendedTransaction)] = extendedTransaction;
+  }
+
   public calculateStockTransaction(stockTransaction: StockTransaction) {
     const stockCurrencySummary: StockCurrencySummary =
           this.getStockCurrencySummary(stockTransaction.totalValueCurrency);
@@ -55,11 +67,30 @@ export class StockSummary {
       this.buyTransactionCounter += 1;
       this.boughtQuantity += stockTransaction.stockQuantity;
       this.totalQuantity += stockTransaction.stockQuantity;
+
+      this.extendedIncomeTransactions.push(new ExtendedTransaction(stockTransaction));
     }
     if (stockTransaction.type === 'SELL') {
       this.sellTransactionCounter += 1;
       this.soldQuantity += stockTransaction.stockQuantity;
       this.totalQuantity -= stockTransaction.stockQuantity;
+
+      let transactionSoldQuantity = stockTransaction.stockQuantity;
+      const stockIncomeSummary = new StockIncomeSummary(stockTransaction);
+      this.stockIncomeSummaries.push(stockIncomeSummary);
+      const stockIncomeSummaryIndex = this.stockIncomeSummaries.indexOf(stockIncomeSummary);
+      while (transactionSoldQuantity > 0) {
+        for (const extendedTransaction of this.extendedIncomeTransactions.filter(x => x.remainingQuantity > 0)) {
+          let transactionRemainingQuantity = extendedTransaction.remainingQuantity;
+          if (transactionSoldQuantity - transactionRemainingQuantity < 0) {
+            transactionRemainingQuantity = transactionSoldQuantity;
+          }
+          transactionSoldQuantity -= transactionRemainingQuantity;
+          extendedTransaction.updateRemainingQuantity(-transactionRemainingQuantity);
+          this.updateExtendedTransaction(extendedTransaction);
+          this.stockIncomeSummaries[stockIncomeSummaryIndex].addExtendedTransaction(extendedTransaction);
+        }
+      }
     }
     stockCurrencySummary.calculateStockTransaction(stockTransaction);
     this.updateStockCurrencySummary(stockCurrencySummary);
@@ -69,6 +100,11 @@ export class StockSummary {
     this.stockSplitCounter += 1;
     this.totalQuantity =
       (this.totalQuantity * stockSplitTransaction.exchangeRatioFor) / stockSplitTransaction.exchangeRatioFrom;
+
+    for (const extendedTransaction of this.extendedIncomeTransactions) {
+      extendedTransaction.splitTransaction(stockSplitTransaction);
+      this.updateExtendedTransaction(extendedTransaction);
+    }
   }
 
   public calculateCashDividendTransaction(cashDividendTransaction: CashDividendTransaction) {
@@ -77,11 +113,15 @@ export class StockSummary {
           this.getStockCurrencySummary(cashDividendTransaction.totalValueCurrency);
     stockCurrencySummary.calculateCashDividendTransaction(cashDividendTransaction);
     this.updateStockCurrencySummary(stockCurrencySummary);
+
+    this.cashDividendTransactions.push(cashDividendTransaction);
   }
 
   public calculateStockDividendTransaction(stockDividendTransaction: StockDividendTransaction) {
     this.stockDividendCounter += 1;
-    this.totalQuantity += Number(stockDividendTransaction.stockQuantity);
+    this.totalQuantity += stockDividendTransaction.stockQuantity;
+
+    this.extendedIncomeTransactions.push(new ExtendedTransaction(stockDividendTransaction));
   }
 
   public getTotalQuantityText() {
