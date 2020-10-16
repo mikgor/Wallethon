@@ -86,9 +86,11 @@ export class StockSummary {
             transactionRemainingQuantity = transactionSoldQuantity;
           }
           transactionSoldQuantity -= transactionRemainingQuantity;
-          extendedTransaction.updateRemainingQuantity(-transactionRemainingQuantity);
-          this.updateExtendedTransaction(extendedTransaction);
-          this.stockIncomeSummaries[stockIncomeSummaryIndex].addExtendedTransaction(extendedTransaction);
+          if (transactionRemainingQuantity > 0) {
+            extendedTransaction.updateRemainingQuantity(-transactionRemainingQuantity);
+            this.updateExtendedTransaction(extendedTransaction);
+            this.stockIncomeSummaries[stockIncomeSummaryIndex].addExtendedTransaction(extendedTransaction);
+          }
         }
       }
     }

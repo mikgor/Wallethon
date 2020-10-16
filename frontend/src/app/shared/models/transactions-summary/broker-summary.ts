@@ -2,9 +2,8 @@ import {UserBroker} from '../../../main/components/dashboard/models/UserBroker';
 import {CompanyStock} from '../../../main/components/dashboard/models/CompanyStock';
 import {StockSplitTransaction} from '../../../main/components/dashboard/models/StockSplitTransaction';
 import {StockSummary} from './stock-summary';
-import {MoneyService} from '../../services/money.service';
-import {BrokerIncomeSummary} from "./broker-income-summary";
-import {CashDividendIncome} from "./cash-dividend-income";
+import {BrokerIncomeSummary} from './broker-income-summary';
+import {CashDividendIncome} from './cash-dividend-income';
 
 export class BrokerSummary {
   broker: UserBroker;
