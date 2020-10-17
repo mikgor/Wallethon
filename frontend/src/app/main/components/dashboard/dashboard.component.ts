@@ -87,9 +87,11 @@ export class DashboardComponent implements OnInit {
   }
 
   public showIncomeAndTaxData() {
-    const tax = 0.19;
-    this.showIncomeAndTax = true;
-    this.brokersTotalIncomeSummary = this.transactionsSummaryService.getIncomeAndTax(this.incomeAndTaxCurrency, tax);
-    this.incomeAndTaxDataLoaded = true;
+    this.showIncomeAndTax = !this.showIncomeAndTax;
+    if (this.showIncomeAndTax && !this.incomeAndTaxDataLoaded) {
+      const tax = 0.19;
+      this.brokersTotalIncomeSummary = this.transactionsSummaryService.getIncomeAndTax(this.incomeAndTaxCurrency, tax);
+      this.incomeAndTaxDataLoaded = true;
+    }
   }
 }
