@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
 import {map} from 'rxjs/operators';
 import {RequestsService} from './requests.service';
-import {DateTimeService} from "./date-time.service";
+import {DateTimeService} from './date-time.service';
+import {STOCK_FRACTION_DIGITS} from '../../config';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +21,10 @@ export class MoneyService {
     return new Intl.NumberFormat(userLanguage, formatOptions).format(money);
   }
 
+  public static formatStock(val: number) {
+    return Number(val.toFixed(STOCK_FRACTION_DIGITS));
+  }
+
   private adjustDate(date: Date, currency) {
     switch (currency) {
       case 'PLN':
@@ -34,10 +39,10 @@ export class MoneyService {
     if (currencyFrom !== currencyTo) {
       const adjustedDate = this.adjustDate(date, currencyTo);
       return this.getExchangeRate(adjustedDate, currencyFrom, currencyTo).pipe(
-      map((response) => {
-        return response * val;
-      })
-    );
+        map((response) => {
+          return response * val;
+        })
+      );
     }
   }
 

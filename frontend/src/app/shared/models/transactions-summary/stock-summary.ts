@@ -6,6 +6,8 @@ import {StockDividendTransaction} from '../../../main/components/dashboard/model
 import {StockCurrencySummary} from './stock-currency-summary';
 import {ExtendedTransaction} from './extended-transaction';
 import {StockIncomeSummary} from './stock-income-summary';
+import {STOCK_FRACTION_DIGITS} from "../../../config";
+import {MoneyService} from "../../services/money.service";
 
 export class StockSummary {
   companyStock: CompanyStock;
@@ -94,6 +96,11 @@ export class StockSummary {
         }
       }
     }
+
+    this.boughtQuantity = MoneyService.formatStock(this.boughtQuantity);
+    this.soldQuantity = MoneyService.formatStock(this.boughtQuantity);
+    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
+
     stockCurrencySummary.calculateStockTransaction(stockTransaction);
     this.updateStockCurrencySummary(stockCurrencySummary);
   }
@@ -103,6 +110,7 @@ export class StockSummary {
     this.totalQuantity =
       (this.totalQuantity * stockSplitTransaction.exchangeRatioFor) / stockSplitTransaction.exchangeRatioFrom;
 
+    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
     for (const extendedTransaction of this.extendedIncomeTransactions) {
       extendedTransaction.splitTransaction(stockSplitTransaction);
       this.updateExtendedTransaction(extendedTransaction);
@@ -122,6 +130,7 @@ export class StockSummary {
   public calculateStockDividendTransaction(stockDividendTransaction: StockDividendTransaction) {
     this.stockDividendCounter += 1;
     this.totalQuantity += stockDividendTransaction.stockQuantity;
+    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
 
     this.extendedIncomeTransactions.push(new ExtendedTransaction(stockDividendTransaction));
   }
