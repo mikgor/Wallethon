@@ -98,7 +98,7 @@ export class StockSummary {
     }
 
     this.boughtQuantity = MoneyService.formatStock(this.boughtQuantity);
-    this.soldQuantity = MoneyService.formatStock(this.boughtQuantity);
+    this.soldQuantity = MoneyService.formatStock(this.soldQuantity);
     this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
 
     stockCurrencySummary.calculateStockTransaction(stockTransaction);
