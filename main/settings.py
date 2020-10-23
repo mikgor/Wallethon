@@ -132,6 +132,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
         'apps.permissions.mixins.ObjectPermissions'
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework_filters.backends.RestFrameworkFilterBackend',
+    ),
 }
 
 REST_KNOX = {

@@ -1,3 +1,4 @@
+from apps.stocks.markets.filters import CompanyStockFilter
 from apps.stocks.markets.models import Market, Company, CompanyStock, MarketCompanyStock
 from apps.stocks.markets.serializers import MarketSerializer, CompanySerializer, \
     CompanyStockSerializer, MarketCompanyStockSerializer
@@ -26,6 +27,7 @@ class CompanyStockViewSet(ProtectedModelViewSet):
     model = CompanyStock
     queryset = model.objects.none()
     serializer_class = CompanyStockSerializer
+    filter_class = CompanyStockFilter
 
     def get_queryset(self):
         return self.model.objects.all()

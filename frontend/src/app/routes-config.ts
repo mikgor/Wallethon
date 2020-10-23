@@ -5,6 +5,8 @@ export enum APP_ROUTES {
 
   // Main
   dashboard = 'app/dashboard',
+  addTransaction = 'app/add-transaction',
+  editTransaction = 'app/edit-transaction',
 
   // Landing
   landing = 'home',

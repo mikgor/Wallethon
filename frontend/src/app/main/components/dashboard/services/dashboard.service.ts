@@ -51,12 +51,16 @@ export class DashboardService {
     );
   }
 
-  public getCompanyStocks() {
-    return this.requestsService.getRequest(`companystocks/`).pipe(
+  public getCompanyStocksWithFilters(filters: string = '') {
+    return this.requestsService.getRequest(`companystocks/?${filters}`).pipe(
       map((response) => {
         return this.getCompanyStocksFromResponse(response);
       })
     );
+  }
+
+  public getCompanyStocks() {
+    return this.getCompanyStocksWithFilters();
   }
 
   public getCompanyStockById(id: string) {

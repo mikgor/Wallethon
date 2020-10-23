@@ -1,5 +1,6 @@
 import datetime
 
+import djmoney
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -129,3 +130,15 @@ class ExchangeView(APIView):
         currency_date = datetime.datetime.strptime(self.request.query_params.get('date'), '%Y-%m-%d').date()
 
         return Response(get_currency_exchange_rate(currency_from, currency_to, currency_date))
+
+
+class CurrenciesView(APIView):
+    http_method_names = ['get']
+
+    def get(self, request):
+        currency_choices = djmoney.settings.CURRENCY_CHOICES
+        currencies = []
+        for symbol, name in currency_choices:
+            currencies.append({'symbol': symbol, 'name': name})
+
+        return Response(currencies)

@@ -4,7 +4,8 @@ djangorestframework==3.11.1
 django-environ==0.4.5
 django-currentuser==0.5.1
 python-dateutil==2.8.1
-djangorestframework-filters==1.0.0.dev0
+django-filter==2.3.0
+djangorestframework-filters==1.0.0.dev2
 django-rest-knox==4.1.0
 Faker==4.1.2
 faker-e164==0.1.0

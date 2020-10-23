@@ -8,7 +8,8 @@ import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
 import {TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
 import {BrokerSummary} from '../../../shared/models/transactions-summary/broker-summary';
-import {BrokersTotalIncomeSummary} from "../../../shared/models/transactions-summary/brokers-total-income-summary";
+import {BrokersTotalIncomeSummary} from '../../../shared/models/transactions-summary/brokers-total-income-summary';
+import { APP_ROUTES } from 'src/app/routes-config';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,7 @@ export class DashboardComponent implements OnInit {
   dataLoaded = false;
   incomeAndTaxDataLoaded = false;
   MoneyService = MoneyService;
+  APP_ROUTES = APP_ROUTES;
 
   constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,

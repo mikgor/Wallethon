@@ -8,6 +8,9 @@ import {MatTableModule} from '@angular/material/table';
 import {MatInputModule} from '@angular/material/input';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import {MatButtonToggleModule} from "@angular/material/button-toggle";
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   imports: [
@@ -20,6 +23,9 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     MatGridListModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatAutocompleteModule,
+    MatButtonToggleModule,
+    MatSelectModule,
   ],
   exports: [
     MatButtonModule,
@@ -31,6 +37,9 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     MatGridListModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatAutocompleteModule,
+    MatButtonToggleModule,
+    MatSelectModule,
   ]
 })
 export class MaterialModule {}

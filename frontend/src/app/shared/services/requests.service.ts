@@ -25,6 +25,10 @@ export class RequestsService {
     );
   }
 
+  public postRequest(endpoint: string, data) {
+    return this.http.post(`${API_URL}/${endpoint}`, data);
+  }
+
   public onRequestError(error) {
     if (error.error.detail === 'Invalid token.') {
       this.authService.logoutUser();

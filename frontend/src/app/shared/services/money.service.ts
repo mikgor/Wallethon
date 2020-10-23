@@ -3,6 +3,9 @@ import {map} from 'rxjs/operators';
 import {RequestsService} from './requests.service';
 import {DateTimeService} from './date-time.service';
 import {STOCK_FRACTION_DIGITS} from '../../config';
+import {Company} from "../../main/components/dashboard/models/Company";
+import {CompanyStock} from "../../main/components/dashboard/models/CompanyStock";
+import {Currency} from "../models/currency";
 
 @Injectable({
   providedIn: 'root',
@@ -53,6 +56,29 @@ export class MoneyService {
       map((response) => {
         return Number(response);
       })
+    );
+  }
+
+  public getCurrencies() {
+    return this.requestsService.getRequest(`currencies/`).pipe(
+      map((response) => {
+        return this.getCurrenciesFromResponse(response);
+      })
+    );
+  }
+
+  public getCurrenciesFromResponse(response) {
+    const currencies: Currency[] = [];
+    for (const currency of response) {
+      currencies.push(this.getCurrencyFromResponse(currency));
+    }
+    return currencies;
+  }
+
+  public getCurrencyFromResponse(response) {
+    return new Currency(
+      response.symbol,
+      response.name
     );
   }
 }
