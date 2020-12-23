@@ -88,6 +88,7 @@ export class StockSummary {
             transactionRemainingQuantity = transactionSoldQuantity;
           }
           transactionSoldQuantity -= transactionRemainingQuantity;
+          transactionSoldQuantity = Number(transactionSoldQuantity.toPrecision(STOCK_FRACTION_DIGITS));
           if (transactionRemainingQuantity > 0) {
             extendedTransaction.updateRemainingQuantity(-transactionRemainingQuantity);
             this.updateExtendedTransaction(extendedTransaction);

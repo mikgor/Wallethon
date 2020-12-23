@@ -1,6 +1,7 @@
 import {StockTransaction} from '../../../main/components/dashboard/models/StockTransaction';
 import {StockDividendTransaction} from '../../../main/components/dashboard/models/StockDividendTransaction';
 import {StockSplitTransaction} from '../../../main/components/dashboard/models/StockSplitTransaction';
+import {STOCK_FRACTION_DIGITS} from "../../../config";
 
 export class ExtendedTransaction {
   transaction: StockTransaction|StockDividendTransaction;
@@ -12,7 +13,7 @@ export class ExtendedTransaction {
   }
 
   public updateRemainingQuantity(quantity: number) {
-    this.remainingQuantity += Number(quantity.toPrecision(10));
+    this.remainingQuantity += Number(quantity.toPrecision(STOCK_FRACTION_DIGITS));
   }
 
   public splitTransaction(stockSplitTransaction: StockSplitTransaction) {

@@ -83,7 +83,7 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
         user = self.request.user
         filtered = self.request.query_params.get('filtered')
 
-        # Return only stock splits when user has more than 0 quantity of splitted stock
+        # Return only stock splits when user has or had any quantity of splitted stock
         if filtered:
             user_stock_transactions = StockTransaction.objects.filter(user=user)
             user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user)
@@ -112,7 +112,7 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
                 else:
                     stocks_amounts[stock_id] = dividend_transaction.stock_quantity
 
-            filtered_stocks_amounts = {stock: amount for (stock, amount) in stocks_amounts.items() if amount > 0}
+            filtered_stocks_amounts = {stock: amount for (stock, amount) in stocks_amounts.items()}
 
             queryset = self.model.objects.filter(company_stock__id__in=filtered_stocks_amounts.keys())
         else:
