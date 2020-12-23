@@ -1,0 +1,94 @@
+<mat-card>
+  <mat-card-title>Create stock transaction</mat-card-title>
+  <mat-card-content>
+    <form role="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <p>
+      <mat-button-toggle-group multiple="false" formControlName='type'>
+        <mat-button-toggle *ngFor="let type of stockTransactionTypes;" [value]="type.value"
+        [className]="type.value" >{{type.name}}</mat-button-toggle>
+      </mat-button-toggle-group>
+    </p>
+    <p>
+      <mat-form-field class="full-width">
+        <input type="text"
+        placeholder="Company stock"
+        aria-label="Company stock"
+        matInput
+        formControlName='companyStock'
+        [maxLength]="10"
+        [matAutocomplete]="autoCompanyStock">
+        <mat-autocomplete #autoCompanyStock="matAutocomplete">
+          <mat-option *ngFor="let companyStock of stockAutoCompleteFilter.getFilteredData(controls.companyStock.value);"
+          [value]="companyStock.symbol">
+          {{companyStock.company.name}} ({{companyStock.symbol}})
+          </mat-option>
+        </mat-autocomplete>
+        <mat-hint>Type at least 1 character of company symbol (ticker)</mat-hint>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field class="full-width">
+        <input type="text"
+        placeholder="Currency"
+        aria-label="Currency"
+        matInput
+        formControlName='currency'
+        [maxLength]="5"
+        [matAutocomplete]="autoCurrency">
+        <mat-autocomplete #autoCurrency="matAutocomplete">
+          <mat-option *ngFor="let currency of currenciesAutoCompleteFilter.getFilteredData(controls.currency.value);"
+          [value]="currency.symbol">
+          {{currency.symbol}} ({{currency.name}})
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Stock quantity</mat-label>
+        <input matInput formControlName="stockQuantity" class="form-control" placeholder="Stock quantity" type="number"/>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Per stock price</mat-label>
+        <span matSuffix>{{controls.currency.value}}</span>
+        <input matInput formControlName="perStockPrice" class="form-control" placeholder="Per stock price" type="number"/>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Tax</mat-label>
+        <span matSuffix>{{controls.currency.value}}</span>
+        <input matInput formControlName="tax" class="form-control" placeholder="Tax" type="number"/>
+      </mat-form-field>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Commission</mat-label>
+        <span matSuffix>{{controls.currency.value}}</span>
+        <input matInput formControlName="commission" class="form-control" placeholder="Commission" type="number"/>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput formControlName="date" class="form-control" placeholder="Date" type="datetime-local"/>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field appearance="fill">
+        <mat-label>Broker</mat-label>
+        <mat-select formControlName="broker">
+          <mat-option *ngFor="let userBroker of userBrokers" [value]="userBroker.id">
+          {{userBroker.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+    <p *ngIf="errorMessage">
+      <mat-error>{{errorMessage}}</mat-error>
+    </p>
+    <button mat-raised-button [disabled]="loading" color="primary" type="submit">Create</button>
+    </form>
+  </mat-card-content>
+</mat-card>
