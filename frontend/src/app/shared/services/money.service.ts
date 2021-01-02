@@ -2,10 +2,8 @@ import {Injectable} from '@angular/core';
 import {map} from 'rxjs/operators';
 import {RequestsService} from './requests.service';
 import {DateTimeService} from './date-time.service';
-import {STOCK_FRACTION_DIGITS} from '../../config';
-import {Company} from "../../main/components/dashboard/models/Company";
-import {CompanyStock} from "../../main/components/dashboard/models/CompanyStock";
-import {Currency} from "../models/currency";
+import {MONEY_FRACTION_DIGITS, STOCK_FRACTION_DIGITS} from '../../config';
+import {Currency} from '../models/currency';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +15,7 @@ export class MoneyService {
   ) {}
 
   public static formatMoney(money, currency) {
-    const formatOptions = { style: 'currency', currency, minimumFractionDigits: 2 };
+    const formatOptions = { style: 'currency', currency, minimumFractionDigits: MONEY_FRACTION_DIGITS };
     const userLanguage = (navigator.languages && navigator.languages.length) ? navigator.languages[0] :
       navigator.language || 'en';
 
@@ -43,7 +41,13 @@ export class MoneyService {
       const adjustedDate = this.adjustDate(date, currencyTo);
       return this.getExchangeRate(adjustedDate, currencyFrom, currencyTo).pipe(
         map((response) => {
-          return response * val;
+          let exchangedValue = response * val;
+          let multiplier = 1;
+          if (exchangedValue < 0) {
+            multiplier = -1;
+            exchangedValue *=  -1;
+          }
+          return Number(exchangedValue.toFixed(MONEY_FRACTION_DIGITS)) * multiplier;
         })
       );
     }

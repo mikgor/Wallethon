@@ -61,7 +61,7 @@ class StockTransaction(BaseModel):
         assert self.per_stock_price.currency == self.commission.currency == self.tax.currency, \
                 'Currencies must be the same'
 
-        total_value = round((self.stock_quantity * self.per_stock_price), 4)
+        total_value = round((self.stock_quantity * self.per_stock_price), 2)
         commissions = self.commission + self.tax
 
         if self.type == self.TRANSACTION_TYPE_SELL:

@@ -1,7 +1,7 @@
 import {StockTransaction} from '../../../main/components/dashboard/models/StockTransaction';
 import {StockDividendTransaction} from '../../../main/components/dashboard/models/StockDividendTransaction';
 import {StockSplitTransaction} from '../../../main/components/dashboard/models/StockSplitTransaction';
-import {STOCK_FRACTION_DIGITS} from "../../../config";
+import {MONEY_FRACTION_DIGITS, STOCK_FRACTION_DIGITS} from "../../../config";
 
 export class ExtendedTransaction {
   transaction: StockTransaction|StockDividendTransaction;
@@ -39,6 +39,6 @@ export class ExtendedTransaction {
       const remainingTax = transaction.tax * remainingRatio;
       totalValue = (stockQuantity * transaction.perStockPrice) + remainingTax + remainingCommission;
     }
-    return totalValue;
+    return Number(totalValue.toFixed(MONEY_FRACTION_DIGITS));
   }
 }
