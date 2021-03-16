@@ -3,9 +3,9 @@ from decimal import Decimal
 
 import pytz
 
-from main.settings import TIME_ZONE
+from main.settings import TIME_ZONE, STOCK_PLACES
 from main.tests.utils.view_case import ViewTestCase
-from main.utils import formatted_date
+from main.utils import formatted_date, datetime_in_x_days
 
 
 class UserBrokerViewSetTestCase(ViewTestCase):
@@ -438,3 +438,162 @@ class StockSplitTransactionViewSetTestCase(ViewTestCase):
 
         self.assertEqual(user_put_response.status_code, 403)
         self.assertEqual(superuser_put_response.status_code, 200)
+
+
+class TransactionsSummaryViewSetTestCase(ViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.superuser, _ = self.create_superuser()
+
+    def __transactions_summaries_data_helper(self, date_from=None, date_to=None):
+        if date_from is None or date_to is None:
+            date_from, date_to = self.faker.date_tuple()
+
+        data = {
+                'date_from': date_from,
+                'date_to': date_to,
+                'user_broker_id': self.create_user_broker().id,
+                'currency': self.faker.currency_code(),
+            }
+
+        return data
+
+    def __company_stock_transactions_quantity(self, company_stock_id, request_data, transactions):
+        return len(
+            [transaction for transaction in transactions if transaction.company_stock.id == company_stock_id
+             and request_data['date_from'].timestamp() <= transaction.timestamp() <= request_data['date_to'].timestamp()]
+                   )
+
+    def __transactions_summaries_response_assert_helper(self, request_data, buy_stock_transactions,
+                                                        sell_stock_transactions, cash_dividend_transactions,
+                                                        stock_dividend_transactions, stock_split_transactions,
+                                                        response):
+
+        self.assertEqual(response.data['date_from'], formatted_date(request_data['date_from']))
+        self.assertEqual(response.data['date_to'], formatted_date(request_data['date_to']))
+        self.assertEqual(response.data['user_broker']['uuid'], request_data['user_broker_id'])
+        self.assertEqual(response.data['currency'], request_data['currency'])
+
+        for data in response.data['data']:
+            company_stock_id = data['company_stock']['uuid']
+            buy_stock_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
+                                                                                         buy_stock_transactions)
+            sell_stock_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
+                                                                                          sell_stock_transactions)
+            cash_dividend_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
+                                                                                             cash_dividend_transactions)
+            stock_dividend_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
+                                                                                              stock_dividend_transactions)
+            stock_split_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
+                                                                                           stock_split_transactions)
+
+            self.assertEqual(len(data['buy_stock_transactions']), buy_stock_transactions_quantity)
+            self.assertEqual(len(data['sell_stock_transactions_summaries']), sell_stock_transactions_quantity)
+            self.assertEqual(len(data['cash_dividend_transactions']), cash_dividend_transactions_quantity)
+            self.assertEqual(len(data['stock_dividend_transactions']), stock_dividend_transactions_quantity)
+            self.assertEqual(len(data['stock_split_transactions']), stock_split_transactions_quantity)
+
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_stocks_transactions_summary_without_transactions(self):
+        data = self.__transactions_summaries_data_helper()
+        response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
+
+        self.__transactions_summaries_response_assert_helper(data, [], [], [], [], [], response)
+
+    def test_create_stocks_transactions_summary(self):
+        date_from, date_to = self.faker.date_tuple()
+
+        quantity_to_buy = self.faker.stock_quantity()
+        stock_buy_transaction = self.create_stock_transaction(date=self.faker.date_between(date_from, date_to),
+                                                              transaction_type='BUY',
+                                                              quantity=quantity_to_buy, user=self.superuser)
+        company_stock = stock_buy_transaction.company_stock
+
+        quantity_percent_to_sell = self.faker.percent()
+        quantity_to_sell = quantity_to_buy * quantity_percent_to_sell
+        stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_between(stock_buy_transaction.date,
+                                                                                            date_to),
+                                                               company_stock=company_stock,
+                                                               quantity=quantity_to_sell,
+                                                               transaction_type='SELL',
+                                                               user=self.superuser)
+        stock_sell_transaction_date = stock_sell_transaction.date
+
+        stock_dividend = self.faker.stock_quantity()
+        stock_dividend_transaction = self.create_stock_dividend_transaction(date=self.faker.date_between(stock_sell_transaction_date,
+                                                                                                         date_to),
+                                                                            company_stock=company_stock,
+                                                                            stock_quantity=stock_dividend,
+                                                                            user=self.superuser)
+
+        cash_dividend = self.faker.dividend()
+        cash_dividend_transaction = self.create_cash_dividend_transaction(date=self.faker.date_between(stock_sell_transaction_date,
+                                                                                                       date_to),
+                                                                          company_stock=company_stock,
+                                                                          dividend=cash_dividend,
+                                                                          user=self.superuser)
+
+        # This transaction won't be included because it's date is later than date_to
+        second_stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_not_between(date_from,
+                                                                                                       date_to),
+                                                                      company_stock=company_stock,
+                                                                      quantity=quantity_to_sell,
+                                                                      transaction_type='SELL',
+                                                                      user=self.superuser)
+
+        remaining_stock_quantity = quantity_to_buy - quantity_to_sell + stock_dividend
+
+        data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
+        response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
+        related_transaction = response.data['data'][0]['sell_stock_transactions_summaries'][0]['related_transactions'][0]
+
+        self.__transactions_summaries_response_assert_helper(data,
+                                                             [stock_buy_transaction],
+                                                             [stock_sell_transaction, second_stock_sell_transaction],
+                                                             [cash_dividend_transaction], [stock_dividend_transaction],
+                                                             [], response)
+        self.assertEqual(response.data['data'][0]['remaining_stock_quantity'], remaining_stock_quantity)
+        self.assertEqual(float(response.data['data'][0]['cash_dividend_total']), cash_dividend)
+        self.assertEqual(response.data['data'][0]['stock_dividend_total'], stock_dividend)
+        self.assertEqual(related_transaction['sold_quantity'], quantity_to_sell)
+        self.assertEqual(related_transaction['origin_quantity'], stock_buy_transaction.stock_quantity)
+        self.assertEqual(related_transaction['origin_quantity_sold_percent'], quantity_percent_to_sell)
+
+    def test_create_stocks_transactions_summary_with_split(self):
+        date_from, date_to = self.faker.date_tuple()
+        quantity_to_buy = self.faker.stock_quantity()
+        stock_buy_transaction = self.create_stock_transaction(date=self.faker.date_between(date_from, date_to),
+                                                              transaction_type='BUY',
+                                                              quantity=quantity_to_buy, user=self.superuser)
+        company_stock = stock_buy_transaction.company_stock
+
+        stock_split_transaction_pay_date = self.faker.date_between(
+            datetime_in_x_days(1, date=stock_buy_transaction.date), date_to)
+        stock_split_transaction = self.create_stock_split_transaction(pay_date=stock_split_transaction_pay_date,
+                                                                      company_stock=company_stock)
+        exchange_ratio_from = stock_split_transaction.exchange_ratio_from
+        exchange_ratio_for = stock_split_transaction.exchange_ratio_for
+
+        quantity_percent_to_sell = self.faker.percent()
+        quantity_to_sell = ((quantity_to_buy * exchange_ratio_for) / exchange_ratio_from) * quantity_percent_to_sell
+        stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_between(
+                                                                        stock_split_transaction_pay_date, date_to),
+                                                               company_stock=company_stock,
+                                                               transaction_type='SELL',
+                                                               quantity=quantity_to_sell,
+                                                               user=self.superuser)
+
+        remaining_stock_quantity = round((stock_buy_transaction.stock_quantity * exchange_ratio_for)
+                                         / exchange_ratio_from, STOCK_PLACES) - quantity_to_sell
+
+        data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
+        response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
+
+        self.__transactions_summaries_response_assert_helper(data,
+                                                             [stock_buy_transaction],
+                                                             [stock_sell_transaction], [], [], [stock_split_transaction],
+                                                             response)
+        self.assertEqual(response.data['data'][0]['remaining_stock_quantity'], remaining_stock_quantity)
+        self.assertEqual(response.data['data'][0]['cash_dividend_total'], 0)
+        self.assertEqual(response.data['data'][0]['stock_dividend_total'], 0)

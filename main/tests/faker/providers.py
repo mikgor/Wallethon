@@ -1,6 +1,35 @@
+import datetime
+import random
+import time
+
 from djmoney.settings import CURRENCY_CHOICES
 from faker.providers import BaseProvider
 from random import choice, uniform
+
+from main.utils import datetime_now
+
+
+class DateTimeProvider(BaseProvider):
+    def date_tuple(self, min_days_difference=1, max_days_difference=365):
+        date_from = datetime_now()
+        random_number_of_hours = random.randint(min_days_difference*24, max_days_difference*24)
+        date_to = date_from + datetime.timedelta(hours=random_number_of_hours)
+
+        return date_from, date_to
+
+    def date_between(self, date_from, date_to):
+        hours_between_dates = (time.mktime(date_to.timetuple()) - time.mktime(date_from.timetuple()))//3600
+        random_number_of_hours = random.randrange(hours_between_dates)
+
+        return date_from + datetime.timedelta(hours=random_number_of_hours)
+
+    def date_not_between(self, date_from, date_to):
+        random_number_of_hours = random.randint(1, 365*3600)
+        after = random.choice([True, False])
+        date = date_to if after else date_from
+        sign = 1 if after else -1
+
+        return date + datetime.timedelta(hours=random_number_of_hours*sign)
 
 
 class CurrencyProvider(BaseProvider):
@@ -22,6 +51,9 @@ class StockTransactionProvider(BaseProvider):
 
     def commission(self):
         return round(uniform(0.01, 10), 4)
+
+    def percent(self):
+        return round(uniform(0, 1), 4)
 
 
 class DividendTransactionProvider(BaseProvider):

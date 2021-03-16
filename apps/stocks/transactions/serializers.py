@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.db import transaction
 from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
@@ -5,7 +7,8 @@ from rest_framework import serializers
 from apps.stocks.markets.models import CompanyStock
 from apps.stocks.markets.serializers import CompanyStockSerializer
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
-    StockSplitTransaction, UserBroker
+    StockSplitTransaction, UserBroker, SellStockTransactionSummary, UserBrokerStockSummary, StockSummary
+from apps.stocks.transactions.utils.utils import get_user_related_stock_split_transactions, sorted_transactions
 from main.models import User
 from main.serializers.base import BaseModelSerializer
 
@@ -230,4 +233,123 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
             'exchange_ratio_for',
             'optional',
             'pay_date'
+        ]
+
+
+class SellStockTransactionSummarySerializer(BaseModelSerializer):
+    sell_transaction = StockTransactionSerializer()
+    related_transactions = serializers.SerializerMethodField()
+
+    def get_related_transactions(self, obj):
+        return obj.related_transactions
+
+    class Meta:
+        model = SellStockTransactionSummary
+        fields = [
+            'sell_transaction',
+            'related_transactions',
+        ]
+
+
+class StockSummarySerializer(BaseModelSerializer):
+    company_stock = CompanyStockSerializer()
+    buy_stock_transactions = serializers.SerializerMethodField()
+    sell_stock_transactions_summaries = serializers.SerializerMethodField()
+    stock_split_transactions = serializers.SerializerMethodField()
+    stock_dividend_transactions = serializers.SerializerMethodField()
+    cash_dividend_transactions = serializers.SerializerMethodField()
+    cash_dividend_total = serializers.SerializerMethodField()
+    stock_dividend_total = serializers.SerializerMethodField()
+    remaining_stock_quantity = serializers.SerializerMethodField()
+
+    def get_buy_stock_transactions(self, obj):
+        return StockTransactionSerializer(obj.buy_stock_transactions, many=True).data
+
+    def get_sell_stock_transactions_summaries(self, obj):
+        return SellStockTransactionSummarySerializer(obj.sell_stock_transactions_summaries, many=True).data
+
+    def get_stock_split_transactions(self, obj):
+        return StockSplitTransactionSerializer(obj.stock_split_transactions, many=True).data
+
+    def get_stock_dividend_transactions(self, obj):
+        return StockDividendTransactionSerializer(obj.stock_dividend_transactions, many=True).data
+
+    def get_cash_dividend_transactions(self, obj):
+        return CashDividendTransactionSerializer(obj.cash_dividend_transactions, many=True).data
+
+    def get_cash_dividend_total(self, obj):
+        return obj.cash_dividend_total
+
+    def get_stock_dividend_total(self, obj):
+        return obj.stock_dividend_total
+
+    def get_remaining_stock_quantity(self, obj):
+        return obj.remaining_stock_quantity
+
+    class Meta:
+        model = StockSummary
+        fields = [
+            'company_stock',
+            'buy_stock_transactions',
+            'sell_stock_transactions_summaries',
+            'stock_split_transactions',
+            'stock_dividend_transactions',
+            'cash_dividend_transactions',
+            'cash_dividend_total',
+            'stock_dividend_total',
+            'remaining_stock_quantity'
+        ]
+
+
+class UserBrokerStockSummarySerializer(BaseModelSerializer):
+    data = serializers.SerializerMethodField()
+    user_broker = UserBrokerSerializer(read_only=True)
+    user_broker_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=UserBroker.objects.all())
+
+    @transaction.atomic
+    def create(self, validated_data):
+        validated_data['user_broker'] = validated_data.pop('user_broker_id')
+        user_broker_stock_summary = super().create(validated_data)
+        user = self.context['request'].user
+
+        # All transactions from beginning are required for calculations, regardless off the date_from
+        user_stock_transactions = StockTransaction.objects.filter(user=user)
+        user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user)
+        user_cash_dividend_transactions = CashDividendTransaction.objects.filter(user=user)
+        user_stock_split_transactions = get_user_related_stock_split_transactions(user)
+
+        transactions = chain(user_stock_transactions[:], user_stock_dividend_transactions[:],
+                           user_cash_dividend_transactions[:], user_stock_split_transactions[:])
+
+        self._transactions = sorted_transactions(transactions)
+
+        return user_broker_stock_summary
+
+    def get_data(self, obj):
+        user_stocks_summaries = {}
+
+        for transaction in self._transactions:
+            stock_id = transaction.company_stock.id
+
+            if stock_id not in user_stocks_summaries:
+                user_stocks_summaries[stock_id] = StockSummary(company_stock_id=transaction.company_stock.id)
+
+            include_transaction = obj.date_from.timestamp() <= transaction.timestamp() <= obj.date_to.timestamp()
+            user_stocks_summaries[stock_id].process_transaction(transaction=transaction,
+                                                                include_transaction=include_transaction)
+
+        serializer = StockSummarySerializer(list(user_stocks_summaries.values()), many=True)
+
+        return serializer.data
+
+    class Meta:
+        model = UserBrokerStockSummary
+        fields = [
+            'uuid',
+            'date_from',
+            'date_to',
+            'user_broker',
+            'user_broker_id',
+            'currency',
+            'data'
         ]

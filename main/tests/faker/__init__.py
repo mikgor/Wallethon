@@ -7,7 +7,7 @@ from faker.providers.date_time.en_US import Provider as DateProvider
 from faker.providers.misc import Provider as MiscProvider
 
 from main.tests.faker.providers import StockTransactionProvider, CurrencyProvider, DividendTransactionProvider, \
-    StockSplitTransactionProvider
+    StockSplitTransactionProvider, DateTimeProvider
 
 Faker.seed(123)
 
@@ -19,6 +19,7 @@ faker.add_provider(CompanyProvider)
 faker.add_provider(LoremProvider)
 faker.add_provider(DateProvider)
 faker.add_provider(MiscProvider)
+faker.add_provider(DateTimeProvider)
 faker.add_provider(CurrencyProvider)
 faker.add_provider(StockTransactionProvider)
 faker.add_provider(DividendTransactionProvider)

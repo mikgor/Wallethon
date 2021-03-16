@@ -20,7 +20,8 @@ from django.urls import path, include
 from apps.stocks.markets.views import MarketViewSet, CompanyViewSet, MarketCompanyStockViewSet, \
     CompanyStockViewSet
 from apps.stocks.transactions.views import StockTransactionViewSet, CashDividendTransactionViewSet, \
-    StockDividendTransactionViewSet, StockSplitTransactionViewSet, UserBrokerViewSet, ExchangeView, CurrenciesView
+    StockDividendTransactionViewSet, StockSplitTransactionViewSet, UserBrokerViewSet, ExchangeView, CurrenciesView, \
+    TransactionsSummaryView
 from frontend.views import home_view
 from main.views import LoginView, UserViewSet
 
@@ -37,6 +38,7 @@ router.register(r'stocktransactions', StockTransactionViewSet, basename='stocktr
 router.register(r'cashdividendtransactions', CashDividendTransactionViewSet, basename='cashdividendtransactions')
 router.register(r'stockdividendtransactions', StockDividendTransactionViewSet, basename='stocktdividendtransactions')
 router.register(r'stocksplittransactions', StockSplitTransactionViewSet, basename='stocksplittransactions')
+router.register(r'transactionssummary', TransactionsSummaryView, basename='transactionssummary')
 
 urlpatterns = [
     path('', home_view),

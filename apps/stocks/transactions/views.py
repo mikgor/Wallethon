@@ -5,9 +5,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
-    StockSplitTransaction, UserBroker
+    StockSplitTransaction, UserBroker, UserBrokerStockSummary
 from apps.stocks.transactions.serializers import StockTransactionSerializer, CashDividendTransactionSerializer, \
-    StockDividendTransactionSerializer, StockSplitTransactionSerializer, UserBrokerSerializer
+    StockDividendTransactionSerializer, StockSplitTransactionSerializer, UserBrokerSerializer, \
+    UserBrokerStockSummarySerializer
+from apps.stocks.transactions.utils.utils import get_user_related_stock_split_transactions
 from apps.stocks.utils.utils import get_currency_exchange_rate
 from main.views import ProtectedModelViewSet
 
@@ -81,40 +83,11 @@ class StockSplitTransactionViewSet(ProtectedModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        filtered = self.request.query_params.get('filtered')
+        related = self.request.query_params.get('related')
 
         # Return only stock splits when user has or had any quantity of splitted stock
-        if filtered:
-            user_stock_transactions = StockTransaction.objects.filter(user=user)
-            user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user)
-
-            # {'stock_id': total_stock_quantity}
-            stocks_amounts = {}
-
-            # Sum user's buy and sell (with minus sign) transactions' quantities
-            for transaction in user_stock_transactions:
-                stock_id = transaction.company_stock.id
-                stock_quantity = transaction.stock_quantity
-
-                if transaction.type == 'SELL':
-                    stock_quantity *= -1
-
-                if stock_id in stocks_amounts:
-                    stocks_amounts[stock_id] += stock_quantity
-                else:
-                    stocks_amounts[stock_id] = stock_quantity
-
-            # Sum user's dividend transactions' quantities
-            for dividend_transaction in user_stock_dividend_transactions:
-                stock_id = dividend_transaction.company_stock.id
-                if stock_id in stocks_amounts:
-                    stocks_amounts[stock_id] += dividend_transaction.stock_quantity
-                else:
-                    stocks_amounts[stock_id] = dividend_transaction.stock_quantity
-
-            filtered_stocks_amounts = {stock: amount for (stock, amount) in stocks_amounts.items()}
-
-            queryset = self.model.objects.filter(company_stock__id__in=filtered_stocks_amounts.keys())
+        if related:
+            queryset = get_user_related_stock_split_transactions(user)
         else:
             queryset = self.model.objects.all()
 
@@ -142,3 +115,12 @@ class CurrenciesView(APIView):
             currencies.append({'symbol': symbol, 'name': name})
 
         return Response(currencies)
+
+
+class TransactionsSummaryView(ProtectedModelViewSet):
+    model = UserBrokerStockSummary
+    queryset = model.objects.none()
+    serializer_class = UserBrokerStockSummarySerializer
+
+    def get_queryset(self):
+        return self.model.objects.none()

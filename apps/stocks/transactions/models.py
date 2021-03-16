@@ -1,5 +1,8 @@
+import copy
+import time
 from decimal import Decimal
 
+import djmoney
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -9,6 +12,7 @@ from djmoney.models.validators import MinMoneyValidator
 from apps.stocks.markets.models import CompanyStock
 from main import rules
 from main.models import BaseModel, User
+from main.settings import STOCK_PLACES
 
 
 class UserBroker(BaseModel):
@@ -79,6 +83,17 @@ class StockTransaction(BaseModel):
         if self.type == self.TRANSACTION_TYPE_BUY and self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Buy transaction total value must be positive.'})
 
+    def timestamp(self):
+        return self.date.timestamp()
+
+    def get_stock_quantity_after_transaction(self, stock_quantity):
+        quantity = self.stock_quantity
+
+        if self.type == 'SELL':
+            quantity *= -1
+
+        return stock_quantity + quantity
+
 
 class CashDividendTransaction(BaseModel):
     company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
@@ -112,6 +127,13 @@ class CashDividendTransaction(BaseModel):
         if self.total_value.amount <= Decimal('0.00'):
             raise ValidationError({'total_value': 'Dividend transaction total value must be positive.'})
 
+    def timestamp(self):
+        return self.date.timestamp()
+
+    def get_stock_quantity_after_transaction(self, stock_quantity):
+        # Can't compare stock and money
+        return stock_quantity
+
 
 class StockDividendTransaction(BaseModel):
     company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
@@ -127,6 +149,12 @@ class StockDividendTransaction(BaseModel):
             "change": rules.is_object_owner,
             "delete": rules.is_object_owner
         }
+
+    def timestamp(self):
+        return self.date.timestamp()
+
+    def get_stock_quantity_after_transaction(self, stock_quantity):
+        return stock_quantity + self.stock_quantity
 
 
 class StockSplitTransaction(BaseModel):
@@ -144,4 +172,122 @@ class StockSplitTransaction(BaseModel):
             "add": rules.is_superuser,
             "change": rules.is_superuser,
             "delete": rules.is_superuser
+        }
+
+    def timestamp(self):
+        return int(time.mktime(self.pay_date.timetuple()))
+
+    def get_stock_quantity_after_transaction(self, stock_quantity):
+        quantity = stock_quantity * (self.exchange_ratio_for/self.exchange_ratio_from)
+        return round(quantity, STOCK_PLACES)
+
+
+class SellStockTransactionSummary(BaseModel):
+    sell_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.related_transactions = []
+
+    def populate_related_transactions(self, modified_transactions, transactions):
+        remaining_stock_quantity = self.sell_transaction.stock_quantity
+        for modified_transaction in modified_transactions:
+            if ((isinstance(modified_transaction, StockTransaction) and modified_transaction.type == 'BUY')
+                or isinstance(modified_transaction, StockDividendTransaction))\
+                    and modified_transaction.stock_quantity > 0:
+
+                split_ratio = 1
+                origin_stock = [transaction for transaction in transactions
+                                if transaction.uuid == modified_transaction.uuid][0]
+                stock_splits_after_transaction = [transaction for transaction in transactions
+                                                  if (isinstance(transaction, StockSplitTransaction)) and
+                                                  transaction.timestamp() >= origin_stock.timestamp()]
+
+                for transaction in stock_splits_after_transaction:
+                    split_ratio = transaction.get_stock_quantity_after_transaction(split_ratio)
+
+                stock_quantity = modified_transaction.stock_quantity \
+                    if remaining_stock_quantity - modified_transaction.stock_quantity > 0 else remaining_stock_quantity
+
+                remaining_stock_quantity = round(remaining_stock_quantity - stock_quantity, STOCK_PLACES)
+                modified_transaction.stock_quantity =\
+                    round(modified_transaction.stock_quantity - stock_quantity, STOCK_PLACES)
+                percent = round(stock_quantity/(origin_stock.stock_quantity*split_ratio), STOCK_PLACES)
+
+                self.related_transactions.append({'id': modified_transaction.id,
+                                                  'sold_quantity': stock_quantity,
+                                                  'origin_quantity': origin_stock.stock_quantity,
+                                                  'origin_quantity_sold_percent': percent})
+
+                if remaining_stock_quantity <= 0:
+                    break
+
+
+class StockSummary(BaseModel):
+    company_stock = models.ForeignKey(CompanyStock, models.CASCADE)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.transactions = []
+        self.modified_transactions = []
+        self.buy_stock_transactions = []
+        self.sell_stock_transactions_summaries: [SellStockTransactionSummary] = []
+        self.cash_dividend_transactions = []
+        self.stock_dividend_transactions = []
+        self.stock_split_transactions = []
+        self.remaining_stock_quantity = 0
+        self.cash_dividend_total = 0
+        self.stock_dividend_total = 0
+
+    def process_transaction(self, transaction, include_transaction):
+        self.transactions.append(copy.copy(transaction))
+        if include_transaction:
+            self.remaining_stock_quantity = transaction.get_stock_quantity_after_transaction(self.remaining_stock_quantity)
+
+        if isinstance(transaction, StockSplitTransaction):
+            for modified_transaction in self.modified_transactions:
+                if (isinstance(modified_transaction, StockTransaction) and modified_transaction.type == 'BUY')\
+                        or isinstance(modified_transaction, StockDividendTransaction):
+                    modified_transaction.stock_quantity =\
+                        transaction.get_stock_quantity_after_transaction(modified_transaction.stock_quantity)
+            if include_transaction:
+                self.stock_split_transactions.append(transaction)
+
+        elif isinstance(transaction, StockTransaction):
+            if transaction.type == 'SELL':
+                sell_transaction_summary = SellStockTransactionSummary(sell_transaction_id=transaction.id)
+                sell_transaction_summary.populate_related_transactions(modified_transactions=self.modified_transactions,
+                                                                       transactions=self.transactions)
+                if include_transaction:
+                    self.sell_stock_transactions_summaries.append(sell_transaction_summary)
+            else: # BUY
+                if include_transaction:
+                    self.buy_stock_transactions.append(transaction)
+
+        elif isinstance(transaction, StockDividendTransaction) and include_transaction:
+            self.stock_dividend_transactions.append(transaction)
+            self.stock_dividend_total = transaction.get_stock_quantity_after_transaction(self.stock_dividend_total)
+
+        elif isinstance(transaction, CashDividendTransaction) and include_transaction:
+            self.cash_dividend_transactions.append(transaction)
+            self.cash_dividend_total += transaction.dividend.amount
+
+        else:
+            pass
+
+        self.modified_transactions.append(transaction)
+
+
+class UserBrokerStockSummary(BaseModel):
+    date_from = models.DateTimeField()
+    date_to = models.DateTimeField()
+    user_broker = models.ForeignKey(UserBroker, models.CASCADE)
+    currency = models.CharField(max_length=5, choices=djmoney.settings.CURRENCY_CHOICES)
+
+    class Meta:
+        rules_permissions = {
+            "view": rules.is_object_owner,
+            "add": rules.is_authenticated,
+            "change": rules.is_object_owner,
+            "delete": rules.is_object_owner
         }
