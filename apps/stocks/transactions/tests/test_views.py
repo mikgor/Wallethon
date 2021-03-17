@@ -536,7 +536,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
 
         # This transaction won't be included because it's date is later than date_to
         second_stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_not_between(date_from,
-                                                                                                       date_to),
+                                                                                                       date_to, True),
                                                                       company_stock=company_stock,
                                                                       quantity=quantity_to_sell,
                                                                       transaction_type='SELL',

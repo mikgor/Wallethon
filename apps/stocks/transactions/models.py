@@ -241,8 +241,7 @@ class StockSummary(BaseModel):
 
     def process_transaction(self, transaction, include_transaction):
         self.transactions.append(copy.copy(transaction))
-        if include_transaction:
-            self.remaining_stock_quantity = transaction.get_stock_quantity_after_transaction(self.remaining_stock_quantity)
+        self.remaining_stock_quantity = transaction.get_stock_quantity_after_transaction(self.remaining_stock_quantity)
 
         if isinstance(transaction, StockSplitTransaction):
             for modified_transaction in self.modified_transactions:

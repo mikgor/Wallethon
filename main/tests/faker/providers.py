@@ -23,9 +23,11 @@ class DateTimeProvider(BaseProvider):
 
         return date_from + datetime.timedelta(hours=random_number_of_hours)
 
-    def date_not_between(self, date_from, date_to):
+    def date_not_between(self, date_from, date_to, after=None):
+        if after is None:
+            after = random.choice([True, False])
+
         random_number_of_hours = random.randint(1, 365*3600)
-        after = random.choice([True, False])
         date = date_to if after else date_from
         sign = 1 if after else -1
 

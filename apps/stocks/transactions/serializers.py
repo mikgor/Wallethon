@@ -313,10 +313,11 @@ class UserBrokerStockSummarySerializer(BaseModelSerializer):
         user = self.context['request'].user
 
         # All transactions from beginning are required for calculations, regardless off the date_from
-        user_stock_transactions = StockTransaction.objects.filter(user=user)
-        user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user)
-        user_cash_dividend_transactions = CashDividendTransaction.objects.filter(user=user)
-        user_stock_split_transactions = get_user_related_stock_split_transactions(user)
+        date_to = user_broker_stock_summary.date_to
+        user_stock_transactions = StockTransaction.objects.filter(user=user, date__lte=date_to)
+        user_stock_dividend_transactions = StockDividendTransaction.objects.filter(user=user, date__lte=date_to)
+        user_cash_dividend_transactions = CashDividendTransaction.objects.filter(user=user, date__lte=date_to)
+        user_stock_split_transactions = get_user_related_stock_split_transactions(user, pay_date__lte=date_to)
 
         transactions = chain(user_stock_transactions[:], user_stock_dividend_transactions[:],
                            user_cash_dividend_transactions[:], user_stock_split_transactions[:])

@@ -29,12 +29,12 @@ def sum_user_stocks_quantities(transaction_type, user, stocks_quantities=None):
     return stocks_quantities
 
 
-def get_user_related_stock_split_transactions(user):
+def get_user_related_stock_split_transactions(user, **kwargs):
     user_stock_transactions_quantities = sum_user_stocks_quantities(StockTransaction, user)
     stocks_quantities = sum_user_stocks_quantities(StockDividendTransaction, user, user_stock_transactions_quantities)
     filtered_stocks_quantities = {stock: amount for (stock, amount) in stocks_quantities.items()}
 
-    return StockSplitTransaction.objects.filter(company_stock__id__in=filtered_stocks_quantities.keys())
+    return StockSplitTransaction.objects.filter(company_stock__id__in=filtered_stocks_quantities.keys(), **kwargs)
 
 
 def get_stock_splits(source, file_path=None):
