@@ -144,7 +144,8 @@ REST_KNOX = {
     'AUTO_REFRESH': True,
 }
 
-STOCK_PLACES = 8
+STOCK_DECIMAL_PLACES = 8
+MONEY_DECIMAL_PLACES = 4
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/

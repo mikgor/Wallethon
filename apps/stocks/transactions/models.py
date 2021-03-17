@@ -12,7 +12,7 @@ from djmoney.models.validators import MinMoneyValidator
 from apps.stocks.markets.models import CompanyStock
 from main import rules
 from main.models import BaseModel, User
-from main.settings import STOCK_PLACES
+from main.settings import STOCK_DECIMAL_PLACES, MONEY_DECIMAL_PLACES
 
 
 class UserBroker(BaseModel):
@@ -42,13 +42,13 @@ class StockTransaction(BaseModel):
     type = models.CharField(max_length=30, choices=TRANSACTION_TYPE_CHOICES)
     company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
     stock_quantity = models.FloatField(validators=[MinValueValidator(Decimal('0.0000001'))])
-    per_stock_price = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    per_stock_price = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                                  validators=[MinMoneyValidator(Decimal('0.01'))])
-    commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    commission = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                             validators=[MinMoneyValidator(0)])
-    tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    tax = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                      validators=[MinMoneyValidator(0)])
-    total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
+    total_value = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
     broker = models.ForeignKey(UserBroker, models.PROTECT)
@@ -65,7 +65,7 @@ class StockTransaction(BaseModel):
         assert self.per_stock_price.currency == self.commission.currency == self.tax.currency, \
                 'Currencies must be the same'
 
-        total_value = round((self.stock_quantity * self.per_stock_price), 2)
+        total_value = round((self.stock_quantity * self.per_stock_price), MONEY_DECIMAL_PLACES)
         commissions = self.commission + self.tax
 
         if self.type == self.TRANSACTION_TYPE_SELL:
@@ -97,13 +97,13 @@ class StockTransaction(BaseModel):
 
 class CashDividendTransaction(BaseModel):
     company_stock = models.ForeignKey(CompanyStock, models.PROTECT)
-    dividend = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    dividend = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                           validators=[MinMoneyValidator(Decimal('0.01'))])
-    commission = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    commission = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                             validators=[MinMoneyValidator(0)])
-    tax = MoneyField(max_digits=14, decimal_places=4, default_currency='USD',
+    tax = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency='USD',
                      validators=[MinMoneyValidator(0)])
-    total_value = MoneyField(max_digits=14, decimal_places=4, null=True, blank=True, default_currency=None)
+    total_value = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
     date = models.DateTimeField()
     user = models.ForeignKey(User, models.CASCADE)
     broker = models.ForeignKey(UserBroker, models.PROTECT)
@@ -120,7 +120,7 @@ class CashDividendTransaction(BaseModel):
         assert self.dividend.currency == self.commission.currency == self.tax.currency, \
                 'Currencies must be the same'
 
-        total_value = round(self.dividend - (self.commission + self.tax), 4)
+        total_value = round(self.dividend - (self.commission + self.tax), MONEY_DECIMAL_PLACES)
 
         self.total_value = total_value
 
@@ -179,7 +179,7 @@ class StockSplitTransaction(BaseModel):
 
     def get_stock_quantity_after_transaction(self, stock_quantity):
         quantity = stock_quantity * (self.exchange_ratio_for/self.exchange_ratio_from)
-        return round(quantity, STOCK_PLACES)
+        return round(quantity, STOCK_DECIMAL_PLACES)
 
 
 class SellStockTransactionSummary(BaseModel):
@@ -209,10 +209,10 @@ class SellStockTransactionSummary(BaseModel):
                 stock_quantity = modified_transaction.stock_quantity \
                     if remaining_stock_quantity - modified_transaction.stock_quantity > 0 else remaining_stock_quantity
 
-                remaining_stock_quantity = round(remaining_stock_quantity - stock_quantity, STOCK_PLACES)
+                remaining_stock_quantity = round(remaining_stock_quantity - stock_quantity, STOCK_DECIMAL_PLACES)
                 modified_transaction.stock_quantity =\
-                    round(modified_transaction.stock_quantity - stock_quantity, STOCK_PLACES)
-                percent = round(stock_quantity/(origin_stock.stock_quantity*split_ratio), STOCK_PLACES)
+                    round(modified_transaction.stock_quantity - stock_quantity, STOCK_DECIMAL_PLACES)
+                percent = round(stock_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
 
                 self.related_transactions.append({'id': modified_transaction.id,
                                                   'sold_quantity': stock_quantity,

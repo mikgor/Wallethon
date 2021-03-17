@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytz
 
-from main.settings import TIME_ZONE, STOCK_PLACES
+from main.settings import TIME_ZONE, STOCK_DECIMAL_PLACES, MONEY_DECIMAL_PLACES
 from main.tests.utils.view_case import ViewTestCase
 from main.utils import formatted_date, datetime_in_x_days
 
@@ -83,14 +83,17 @@ class StockTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(data['per_stock_price_currency'], data['commission_currency'])
         self.assertEqual(data['commission_currency'], data['total_value_currency'])
 
-        total_value = round(
-            float(data['stock_quantity']) * float(data['per_stock_price'])
-            + float(data['commission']) + float(data['tax']), 4)
+        total_value = float(data['stock_quantity']) * float(data['per_stock_price'])
+        commissions = float(data['commission']) + float(data['tax'])
 
         if data['type'] == 'SELL':
+            total_value -= commissions
             total_value *= -1
 
-        self.assertEqual(float(data['total_value']), total_value)
+        if data['type'] == 'BUY':
+            total_value += commissions
+
+        self.assertEqual(float(data['total_value']), round(total_value, MONEY_DECIMAL_PLACES))
 
     def __stock_transaction_data_helper(self, user=None):
         if user is None:
@@ -215,7 +218,7 @@ class CashDividendTransactionViewSetTestCase(ViewTestCase):
         self.assertEqual(data['dividend_currency'], data['commission_currency'])
         self.assertEqual(data['tax_currency'], data['total_value_currency'])
 
-        total_value = round(float(data['dividend']) - (float(data['commission']) + float(data['tax'])), 4)
+        total_value = round(float(data['dividend']) - (float(data['commission']) + float(data['tax'])), MONEY_DECIMAL_PLACES)
 
         self.assertEqual(float(data['total_value']), total_value)
 
@@ -584,8 +587,8 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
                                                                quantity=quantity_to_sell,
                                                                user=self.superuser)
 
-        remaining_stock_quantity = round((stock_buy_transaction.stock_quantity * exchange_ratio_for)
-                                         / exchange_ratio_from, STOCK_PLACES) - quantity_to_sell
+        remaining_stock_quantity =round((stock_buy_transaction.stock_quantity * exchange_ratio_for)
+                                        / exchange_ratio_from, STOCK_DECIMAL_PLACES) - quantity_to_sell
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)

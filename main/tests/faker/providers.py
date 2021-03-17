@@ -6,6 +6,7 @@ from djmoney.settings import CURRENCY_CHOICES
 from faker.providers import BaseProvider
 from random import choice, uniform
 
+from main.settings import MONEY_DECIMAL_PLACES
 from main.utils import datetime_now
 
 
@@ -46,21 +47,21 @@ class StockTransactionProvider(BaseProvider):
         return choice(['BUY', 'SELL'])
 
     def stock_quantity(self):
-        return round(uniform(0.01, 100), 4)
+        return round(uniform(0.01, 100), MONEY_DECIMAL_PLACES)
 
     def per_stock_price(self):
-        return round(uniform(0.01, 10000), 4)
+        return round(uniform(0.01, 10000), MONEY_DECIMAL_PLACES)
 
     def commission(self):
-        return round(uniform(0.01, 10), 4)
+        return round(uniform(0.01, 10), MONEY_DECIMAL_PLACES)
 
     def percent(self):
-        return round(uniform(0, 1), 4)
+        return round(uniform(0, 1), MONEY_DECIMAL_PLACES)
 
 
 class DividendTransactionProvider(BaseProvider):
     def dividend(self):
-        return round(uniform(100, 1000), 4)
+        return round(uniform(100, 1000), MONEY_DECIMAL_PLACES)
 
 
 class StockSplitTransactionProvider(BaseProvider):
