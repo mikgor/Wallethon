@@ -186,12 +186,30 @@ class SellRelatedBuyStockTransaction(BaseModel):
     buy_stock_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
     sold_quantity = models.FloatField()
     origin_quantity_sold_ratio = models.FloatField()
+    profit = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
+
+    def __init__(self, sell_value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.calculate_profit(sell_value)
+
+    def calculate_profit(self, sell_value):
+        if sell_value.currency == self.buy_stock_transaction.total_value.currency:
+            costs = self.origin_quantity_sold_ratio*self.buy_stock_transaction.total_value
+            self.profit = -sell_value - costs
 
 
 class SellRelatedStockDividendTransaction(BaseModel):
     stock_dividend_transaction = models.ForeignKey(StockDividendTransaction, models.CASCADE)
     sold_quantity = models.FloatField()
     origin_quantity_sold_ratio = models.FloatField()
+    profit = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
+
+    def __init__(self, sell_value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.calculate_profit(sell_value)
+
+    def calculate_profit(self, sell_value):
+        self.profit = sell_value
 
 
 class SellStockTransactionSummary(BaseModel):
@@ -229,19 +247,23 @@ class SellStockTransactionSummary(BaseModel):
                 origin_quantity_sold_ratio = \
                     round(sold_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
 
+                sell_value = self.sell_transaction.total_value * (sold_quantity / self.sell_transaction.stock_quantity)
+
                 if isinstance(modified_transaction, StockDividendTransaction):
-                    self.sell_related_stock_dividend_transactions.append(
-                        SellRelatedStockDividendTransaction(stock_dividend_transaction_id=modified_transaction.id,
-                                                            sold_quantity=sold_quantity,
-                                                            origin_quantity_sold_ratio=origin_quantity_sold_ratio)
-                    )
+                    sell_related_stock_dividend_transaction = SellRelatedStockDividendTransaction(
+                        stock_dividend_transaction_id=modified_transaction.id,
+                        sold_quantity=sold_quantity,
+                        origin_quantity_sold_ratio=origin_quantity_sold_ratio,
+                        sell_value=sell_value)
+                    self.sell_related_stock_dividend_transactions.append(sell_related_stock_dividend_transaction)
 
                 elif isinstance(modified_transaction, StockTransaction):
-                    self.sell_related_buy_stock_transactions.append(
-                        SellRelatedBuyStockTransaction(buy_stock_transaction_id=modified_transaction.id,
-                                                       sold_quantity=sold_quantity,
-                                                       origin_quantity_sold_ratio=origin_quantity_sold_ratio)
-                    )
+                    sell_related_buy_stock_transaction = SellRelatedBuyStockTransaction(
+                        buy_stock_transaction_id=modified_transaction.id,
+                        sold_quantity=sold_quantity,
+                        origin_quantity_sold_ratio=origin_quantity_sold_ratio,
+                        sell_value=sell_value)
+                    self.sell_related_buy_stock_transactions.append(sell_related_buy_stock_transaction)
 
                 else:
                     pass

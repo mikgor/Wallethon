@@ -239,6 +239,8 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
 
 class BuyStockSellRelatedTransactionSerializer(BaseModelSerializer):
     buy_stock_transaction = StockDividendTransactionSerializer()
+    profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
+    profit_currency = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
         model = SellRelatedBuyStockTransaction
@@ -246,11 +248,15 @@ class BuyStockSellRelatedTransactionSerializer(BaseModelSerializer):
             'buy_stock_transaction',
             'sold_quantity',
             'origin_quantity_sold_ratio',
+            'profit',
+            'profit_currency',
         ]
 
 
 class StockDividendSellRelatedTransactionSerializer(BaseModelSerializer):
     stock_dividend_transaction = StockDividendTransactionSerializer()
+    profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
+    profit_currency = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
         model = SellRelatedStockDividendTransaction
@@ -258,6 +264,8 @@ class StockDividendSellRelatedTransactionSerializer(BaseModelSerializer):
             'stock_dividend_transaction',
             'sold_quantity',
             'origin_quantity_sold_ratio',
+            'profit',
+            'profit_currency',
         ]
 
 
