@@ -513,8 +513,8 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
                                                               quantity=quantity_to_buy, user=self.superuser)
         company_stock = stock_buy_transaction.company_stock
 
-        quantity_percent_to_sell = self.faker.percent()
-        quantity_to_sell = quantity_to_buy * quantity_percent_to_sell
+        quantity_ratio_to_sell = self.faker.ratio()
+        quantity_to_sell = quantity_to_buy * quantity_ratio_to_sell
         stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_between(stock_buy_transaction.date,
                                                                                             date_to),
                                                                company_stock=company_stock,
@@ -549,7 +549,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
-        related_transaction = response.data['data'][0]['sell_stock_transactions_summaries'][0]['related_transactions'][0]
+        related_transaction = response.data['data'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
 
         self.__transactions_summaries_response_assert_helper(data,
                                                              [stock_buy_transaction],
@@ -560,8 +560,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
         self.assertEqual(float(response.data['data'][0]['cash_dividend_total']), cash_dividend)
         self.assertEqual(response.data['data'][0]['stock_dividend_total'], stock_dividend)
         self.assertEqual(related_transaction['sold_quantity'], quantity_to_sell)
-        self.assertEqual(related_transaction['origin_quantity'], stock_buy_transaction.stock_quantity)
-        self.assertEqual(related_transaction['origin_quantity_sold_percent'], quantity_percent_to_sell)
+        self.assertEqual(related_transaction['origin_quantity_sold_ratio'], quantity_ratio_to_sell)
 
     def test_create_stocks_transactions_summary_with_split(self):
         date_from, date_to = self.faker.date_tuple()
@@ -578,8 +577,8 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
         exchange_ratio_from = stock_split_transaction.exchange_ratio_from
         exchange_ratio_for = stock_split_transaction.exchange_ratio_for
 
-        quantity_percent_to_sell = self.faker.percent()
-        quantity_to_sell = ((quantity_to_buy * exchange_ratio_for) / exchange_ratio_from) * quantity_percent_to_sell
+        quantity_ratio_to_sell = self.faker.ratio()
+        quantity_to_sell = ((quantity_to_buy * exchange_ratio_for) / exchange_ratio_from) * quantity_ratio_to_sell
         stock_sell_transaction = self.create_stock_transaction(date=self.faker.date_between(
                                                                         stock_split_transaction_pay_date, date_to),
                                                                company_stock=company_stock,

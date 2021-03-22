@@ -55,7 +55,7 @@ class StockTransactionProvider(BaseProvider):
     def commission(self):
         return round(uniform(0.01, 10), MONEY_DECIMAL_PLACES)
 
-    def percent(self):
+    def ratio(self):
         return round(uniform(0, 1), MONEY_DECIMAL_PLACES)
 
 

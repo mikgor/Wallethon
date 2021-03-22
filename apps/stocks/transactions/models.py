@@ -182,12 +182,26 @@ class StockSplitTransaction(BaseModel):
         return round(quantity, STOCK_DECIMAL_PLACES)
 
 
+class SellRelatedBuyStockTransaction(BaseModel):
+    buy_stock_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
+    sold_quantity = models.FloatField()
+    origin_quantity_sold_ratio = models.FloatField()
+
+
+class SellRelatedStockDividendTransaction(BaseModel):
+    stock_dividend_transaction = models.ForeignKey(StockDividendTransaction, models.CASCADE)
+    sold_quantity = models.FloatField()
+    origin_quantity_sold_ratio = models.FloatField()
+
+
 class SellStockTransactionSummary(BaseModel):
     sell_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, modified_transactions, transactions, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.related_transactions = []
+        self.sell_related_buy_stock_transactions: [SellRelatedBuyStockTransaction] = []
+        self.sell_related_stock_dividend_transactions: [SellRelatedStockDividendTransaction] = []
+        self.populate_related_transactions(modified_transactions, transactions)
 
     def populate_related_transactions(self, modified_transactions, transactions):
         remaining_stock_quantity = self.sell_transaction.stock_quantity
@@ -206,18 +220,31 @@ class SellStockTransactionSummary(BaseModel):
                 for transaction in stock_splits_after_transaction:
                     split_ratio = transaction.get_stock_quantity_after_transaction(split_ratio)
 
-                stock_quantity = modified_transaction.stock_quantity \
+                sold_quantity = modified_transaction.stock_quantity \
                     if remaining_stock_quantity - modified_transaction.stock_quantity > 0 else remaining_stock_quantity
 
-                remaining_stock_quantity = round(remaining_stock_quantity - stock_quantity, STOCK_DECIMAL_PLACES)
-                modified_transaction.stock_quantity =\
-                    round(modified_transaction.stock_quantity - stock_quantity, STOCK_DECIMAL_PLACES)
-                percent = round(stock_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
+                remaining_stock_quantity = round(remaining_stock_quantity - sold_quantity, STOCK_DECIMAL_PLACES)
+                modified_transaction.stock_quantity = \
+                    round(modified_transaction.stock_quantity - sold_quantity, STOCK_DECIMAL_PLACES)
+                origin_quantity_sold_ratio = \
+                    round(sold_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
 
-                self.related_transactions.append({'id': modified_transaction.id,
-                                                  'sold_quantity': stock_quantity,
-                                                  'origin_quantity': origin_stock.stock_quantity,
-                                                  'origin_quantity_sold_percent': percent})
+                if isinstance(modified_transaction, StockDividendTransaction):
+                    self.sell_related_stock_dividend_transactions.append(
+                        SellRelatedStockDividendTransaction(stock_dividend_transaction_id=modified_transaction.id,
+                                                            sold_quantity=sold_quantity,
+                                                            origin_quantity_sold_ratio=origin_quantity_sold_ratio)
+                    )
+
+                elif isinstance(modified_transaction, StockTransaction):
+                    self.sell_related_buy_stock_transactions.append(
+                        SellRelatedBuyStockTransaction(buy_stock_transaction_id=modified_transaction.id,
+                                                       sold_quantity=sold_quantity,
+                                                       origin_quantity_sold_ratio=origin_quantity_sold_ratio)
+                    )
+
+                else:
+                    pass
 
                 if remaining_stock_quantity <= 0:
                     break
@@ -254,8 +281,8 @@ class StockSummary(BaseModel):
 
         elif isinstance(transaction, StockTransaction):
             if transaction.type == 'SELL':
-                sell_transaction_summary = SellStockTransactionSummary(sell_transaction_id=transaction.id)
-                sell_transaction_summary.populate_related_transactions(modified_transactions=self.modified_transactions,
+                sell_transaction_summary = SellStockTransactionSummary(sell_transaction_id=transaction.id,
+                                                                       modified_transactions=self.modified_transactions,
                                                                        transactions=self.transactions)
                 if include_transaction:
                     self.sell_stock_transactions_summaries.append(sell_transaction_summary)

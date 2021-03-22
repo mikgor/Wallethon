@@ -7,7 +7,8 @@ from rest_framework import serializers
 from apps.stocks.markets.models import CompanyStock
 from apps.stocks.markets.serializers import CompanyStockSerializer
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
-    StockSplitTransaction, UserBroker, SellStockTransactionSummary, UserBrokerStockSummary, StockSummary
+    StockSplitTransaction, UserBroker, SellStockTransactionSummary, UserBrokerStockSummary, StockSummary, \
+    SellRelatedStockDividendTransaction, SellRelatedBuyStockTransaction
 from apps.stocks.transactions.utils.utils import get_user_related_stock_split_transactions, sorted_transactions
 from main.models import User
 from main.serializers.base import BaseModelSerializer
@@ -236,18 +237,49 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
         ]
 
 
+class BuyStockSellRelatedTransactionSerializer(BaseModelSerializer):
+    buy_stock_transaction = StockDividendTransactionSerializer()
+
+    class Meta:
+        model = SellRelatedBuyStockTransaction
+        fields = [
+            'buy_stock_transaction',
+            'sold_quantity',
+            'origin_quantity_sold_ratio',
+        ]
+
+
+class StockDividendSellRelatedTransactionSerializer(BaseModelSerializer):
+    stock_dividend_transaction = StockDividendTransactionSerializer()
+
+    class Meta:
+        model = SellRelatedStockDividendTransaction
+        fields = [
+            'stock_dividend_transaction',
+            'sold_quantity',
+            'origin_quantity_sold_ratio',
+        ]
+
+
 class SellStockTransactionSummarySerializer(BaseModelSerializer):
     sell_transaction = StockTransactionSerializer()
-    related_transactions = serializers.SerializerMethodField()
+    sell_related_buy_stock_transactions = serializers.SerializerMethodField()
+    sell_related_stock_dividend_transactions = serializers.SerializerMethodField()
 
-    def get_related_transactions(self, obj):
-        return obj.related_transactions
+    def get_sell_related_buy_stock_transactions(self, obj):
+        return BuyStockSellRelatedTransactionSerializer(
+            obj.sell_related_buy_stock_transactions, many=True).data
+
+    def get_sell_related_stock_dividend_transactions(self, obj):
+        return StockDividendSellRelatedTransactionSerializer(
+            obj.sell_related_stock_dividend_transactions, many=True).data
 
     class Meta:
         model = SellStockTransactionSummary
         fields = [
             'sell_transaction',
-            'related_transactions',
+            'sell_related_stock_dividend_transactions',
+            'sell_related_buy_stock_transactions',
         ]
 
 
