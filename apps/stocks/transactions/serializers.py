@@ -237,8 +237,8 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
         ]
 
 
-class BuyStockSellRelatedTransactionSerializer(BaseModelSerializer):
-    buy_stock_transaction = StockDividendTransactionSerializer()
+class SellRelatedBuyStockTransactionSerializer(BaseModelSerializer):
+    buy_stock_transaction = StockTransactionSerializer()
     profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
     profit_currency = serializers.CharField(read_only=True, allow_null=True)
 
@@ -253,7 +253,7 @@ class BuyStockSellRelatedTransactionSerializer(BaseModelSerializer):
         ]
 
 
-class StockDividendSellRelatedTransactionSerializer(BaseModelSerializer):
+class SellRelatedStockDividendTransactionSerializer(BaseModelSerializer):
     stock_dividend_transaction = StockDividendTransactionSerializer()
     profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
     profit_currency = serializers.CharField(read_only=True, allow_null=True)
@@ -275,11 +275,11 @@ class SellStockTransactionSummarySerializer(BaseModelSerializer):
     sell_related_stock_dividend_transactions = serializers.SerializerMethodField()
 
     def get_sell_related_buy_stock_transactions(self, obj):
-        return BuyStockSellRelatedTransactionSerializer(
+        return SellRelatedBuyStockTransactionSerializer(
             obj.sell_related_buy_stock_transactions, many=True).data
 
     def get_sell_related_stock_dividend_transactions(self, obj):
-        return StockDividendSellRelatedTransactionSerializer(
+        return SellRelatedStockDividendTransactionSerializer(
             obj.sell_related_stock_dividend_transactions, many=True).data
 
     class Meta:
