@@ -477,7 +477,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
         self.assertEqual(response.data['user_broker']['uuid'], request_data['user_broker_id'])
         self.assertEqual(response.data['currency'], request_data['currency'])
 
-        for data in response.data['data']:
+        for data in response.data['stock_summaries']:
             company_stock_id = data['company_stock']['uuid']
             buy_stock_transactions_quantity = self.__company_stock_transactions_quantity(company_stock_id, request_data,
                                                                                          buy_stock_transactions)
@@ -524,7 +524,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
-        sell_related_buy_stock_transaction = response.data['data'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
+        sell_related_buy_stock_transaction = response.data['stock_summaries'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
 
         sell_value = stock_sell_transaction.total_value
         buy_value = stock_buy_transaction.total_value*quantity_ratio_to_sell
@@ -579,16 +579,16 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
-        related_transaction = response.data['data'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
+        related_transaction = response.data['stock_summaries'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
 
         self.__transactions_summaries_response_assert_helper(data,
                                                              [stock_buy_transaction],
                                                              [stock_sell_transaction, second_stock_sell_transaction],
                                                              [cash_dividend_transaction], [stock_dividend_transaction],
                                                              [], response)
-        self.assertEqual(response.data['data'][0]['remaining_stock_quantity'], remaining_stock_quantity)
-        self.assertEqual(float(response.data['data'][0]['cash_dividend_total']), cash_dividend)
-        self.assertEqual(response.data['data'][0]['stock_dividend_total'], stock_dividend)
+        self.assertEqual(response.data['stock_summaries'][0]['remaining_stock_quantity'], remaining_stock_quantity)
+        self.assertEqual(float(response.data['stock_summaries'][0]['cash_dividend_total']), cash_dividend)
+        self.assertEqual(response.data['stock_summaries'][0]['stock_dividend_total'], stock_dividend)
         self.assertEqual(related_transaction['sold_quantity'], quantity_to_sell)
         self.assertEqual(related_transaction['origin_quantity_sold_ratio'], quantity_ratio_to_sell)
 
@@ -626,6 +626,6 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
                                                              [stock_buy_transaction],
                                                              [stock_sell_transaction], [], [], [stock_split_transaction],
                                                              response)
-        self.assertEqual(response.data['data'][0]['remaining_stock_quantity'], remaining_stock_quantity)
-        self.assertEqual(response.data['data'][0]['cash_dividend_total'], 0)
-        self.assertEqual(response.data['data'][0]['stock_dividend_total'], 0)
+        self.assertEqual(response.data['stock_summaries'][0]['remaining_stock_quantity'], remaining_stock_quantity)
+        self.assertEqual(response.data['stock_summaries'][0]['cash_dividend_total'], 0)
+        self.assertEqual(response.data['stock_summaries'][0]['stock_dividend_total'], 0)

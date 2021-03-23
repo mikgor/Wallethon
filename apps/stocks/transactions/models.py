@@ -213,7 +213,7 @@ class SellRelatedStockDividendTransaction(BaseModel):
 
 
 class SellStockTransactionSummary(BaseModel):
-    sell_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
+    sell_stock_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
 
     def __init__(self, modified_transactions, transactions, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -222,7 +222,7 @@ class SellStockTransactionSummary(BaseModel):
         self.populate_related_transactions(modified_transactions, transactions)
 
     def populate_related_transactions(self, modified_transactions, transactions):
-        remaining_stock_quantity = self.sell_transaction.stock_quantity
+        remaining_stock_quantity = self.sell_stock_transaction.stock_quantity
         for modified_transaction in modified_transactions:
             if ((isinstance(modified_transaction, StockTransaction) and modified_transaction.type == 'BUY')
                 or isinstance(modified_transaction, StockDividendTransaction))\
@@ -247,7 +247,8 @@ class SellStockTransactionSummary(BaseModel):
                 origin_quantity_sold_ratio = \
                     round(sold_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
 
-                sell_value = self.sell_transaction.total_value * (sold_quantity / self.sell_transaction.stock_quantity)
+                sell_value = self.sell_stock_transaction.total_value *\
+                             (sold_quantity / self.sell_stock_transaction.stock_quantity)
 
                 if isinstance(modified_transaction, StockDividendTransaction):
                     sell_related_stock_dividend_transaction = SellRelatedStockDividendTransaction(
@@ -303,7 +304,7 @@ class StockSummary(BaseModel):
 
         elif isinstance(transaction, StockTransaction):
             if transaction.type == 'SELL':
-                sell_transaction_summary = SellStockTransactionSummary(sell_transaction_id=transaction.id,
+                sell_transaction_summary = SellStockTransactionSummary(sell_stock_transaction_id=transaction.id,
                                                                        modified_transactions=self.modified_transactions,
                                                                        transactions=self.transactions)
                 if include_transaction:

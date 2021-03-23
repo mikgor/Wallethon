@@ -270,7 +270,7 @@ class StockDividendSellRelatedTransactionSerializer(BaseModelSerializer):
 
 
 class SellStockTransactionSummarySerializer(BaseModelSerializer):
-    sell_transaction = StockTransactionSerializer()
+    sell_stock_transaction = StockTransactionSerializer()
     sell_related_buy_stock_transactions = serializers.SerializerMethodField()
     sell_related_stock_dividend_transactions = serializers.SerializerMethodField()
 
@@ -285,7 +285,7 @@ class SellStockTransactionSummarySerializer(BaseModelSerializer):
     class Meta:
         model = SellStockTransactionSummary
         fields = [
-            'sell_transaction',
+            'sell_stock_transaction',
             'sell_related_stock_dividend_transactions',
             'sell_related_buy_stock_transactions',
         ]
@@ -342,7 +342,7 @@ class StockSummarySerializer(BaseModelSerializer):
 
 
 class UserBrokerStockSummarySerializer(BaseModelSerializer):
-    data = serializers.SerializerMethodField()
+    stock_summaries = serializers.SerializerMethodField()
     user_broker = UserBrokerSerializer(read_only=True)
     user_broker_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=UserBroker.objects.all())
 
@@ -366,7 +366,7 @@ class UserBrokerStockSummarySerializer(BaseModelSerializer):
 
         return user_broker_stock_summary
 
-    def get_data(self, obj):
+    def get_stock_summaries(self, obj):
         user_stocks_summaries = {}
 
         for transaction in self._transactions:
@@ -392,5 +392,5 @@ class UserBrokerStockSummarySerializer(BaseModelSerializer):
             'user_broker',
             'user_broker_id',
             'currency',
-            'data'
+            'stock_summaries'
         ]
