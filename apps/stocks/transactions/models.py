@@ -186,34 +186,39 @@ class SellRelatedBuyStockTransaction(BaseModel):
     buy_stock_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
     sold_quantity = models.FloatField()
     origin_quantity_sold_ratio = models.FloatField()
-    profit = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
+    costs = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency=None)
+    income = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency=None)
 
-    def __init__(self, sell_value, *args, **kwargs):
+    def __init__(self, income, income_commissions, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.calculate_profit(sell_value)
+        self.set_costs_and_income(income, income_commissions)
 
-    def calculate_profit(self, sell_value):
-        if sell_value.currency == self.buy_stock_transaction.total_value.currency:
-            costs = self.origin_quantity_sold_ratio*self.buy_stock_transaction.total_value
-            self.profit = -sell_value - costs
+    def set_costs_and_income(self, income, income_commissions):
+        if income.currency == self.buy_stock_transaction.total_value.currency:
+            costs = self.origin_quantity_sold_ratio*self.buy_stock_transaction.total_value + income_commissions
+            self.costs = costs
+            self.income = income
 
 
 class SellRelatedStockDividendTransaction(BaseModel):
     stock_dividend_transaction = models.ForeignKey(StockDividendTransaction, models.CASCADE)
     sold_quantity = models.FloatField()
     origin_quantity_sold_ratio = models.FloatField()
-    profit = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, null=True, blank=True, default_currency=None)
+    costs = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency=None)
+    income = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency=None)
 
-    def __init__(self, sell_value, *args, **kwargs):
+    def __init__(self, income, income_commissions, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.calculate_profit(sell_value)
+        self.set_costs_and_income(income)
 
-    def calculate_profit(self, sell_value):
-        self.profit = sell_value
+    def set_costs_and_income(self, income):
+        self.costs = 0
+        self.income = income
 
 
 class SellStockTransactionSummary(BaseModel):
     sell_stock_transaction = models.ForeignKey(StockTransaction, models.CASCADE)
+    include_transaction = models.BooleanField(default=False)
 
     def __init__(self, modified_transactions, transactions, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -247,15 +252,16 @@ class SellStockTransactionSummary(BaseModel):
                 origin_quantity_sold_ratio = \
                     round(sold_quantity / (origin_stock.stock_quantity*split_ratio), STOCK_DECIMAL_PLACES)
 
-                sell_value = self.sell_stock_transaction.total_value *\
-                             (sold_quantity / self.sell_stock_transaction.stock_quantity)
+                income = self.sell_stock_transaction.per_stock_price * self.sell_stock_transaction.stock_quantity
+                income_commissions = self.sell_stock_transaction.commission + self.sell_stock_transaction.tax
 
                 if isinstance(modified_transaction, StockDividendTransaction):
                     sell_related_stock_dividend_transaction = SellRelatedStockDividendTransaction(
                         stock_dividend_transaction_id=modified_transaction.id,
                         sold_quantity=sold_quantity,
                         origin_quantity_sold_ratio=origin_quantity_sold_ratio,
-                        sell_value=sell_value)
+                        income=income,
+                        income_commissions=income_commissions)
                     self.sell_related_stock_dividend_transactions.append(sell_related_stock_dividend_transaction)
 
                 elif isinstance(modified_transaction, StockTransaction):
@@ -263,7 +269,8 @@ class SellStockTransactionSummary(BaseModel):
                         buy_stock_transaction_id=modified_transaction.id,
                         sold_quantity=sold_quantity,
                         origin_quantity_sold_ratio=origin_quantity_sold_ratio,
-                        sell_value=sell_value)
+                        income=income,
+                        income_commissions=income_commissions)
                     self.sell_related_buy_stock_transactions.append(sell_related_buy_stock_transaction)
 
                 else:
@@ -271,6 +278,15 @@ class SellStockTransactionSummary(BaseModel):
 
                 if remaining_stock_quantity <= 0:
                     break
+
+
+class CashDividendTransactionSummary(BaseModel):
+    cash_dividend_transaction = models.ForeignKey(CashDividendTransaction, models.CASCADE)
+    income = MoneyField(max_digits=14, decimal_places=MONEY_DECIMAL_PLACES, default_currency=None)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.income = self.cash_dividend_transaction.total_value
 
 
 class StockSummary(BaseModel):
@@ -282,7 +298,7 @@ class StockSummary(BaseModel):
         self.modified_transactions = []
         self.buy_stock_transactions = []
         self.sell_stock_transactions_summaries: [SellStockTransactionSummary] = []
-        self.cash_dividend_transactions = []
+        self.cash_dividend_transactions_summaries: [CashDividendTransactionSummary] = []
         self.stock_dividend_transactions = []
         self.stock_split_transactions = []
         self.remaining_stock_quantity = 0
@@ -306,9 +322,9 @@ class StockSummary(BaseModel):
             if transaction.type == 'SELL':
                 sell_transaction_summary = SellStockTransactionSummary(sell_stock_transaction_id=transaction.id,
                                                                        modified_transactions=self.modified_transactions,
-                                                                       transactions=self.transactions)
-                if include_transaction:
-                    self.sell_stock_transactions_summaries.append(sell_transaction_summary)
+                                                                       transactions=self.transactions,
+                                                                       include_transaction=include_transaction)
+                self.sell_stock_transactions_summaries.append(sell_transaction_summary)
             else: # BUY
                 if include_transaction:
                     self.buy_stock_transactions.append(transaction)
@@ -318,7 +334,8 @@ class StockSummary(BaseModel):
             self.stock_dividend_total = transaction.get_stock_quantity_after_transaction(self.stock_dividend_total)
 
         elif isinstance(transaction, CashDividendTransaction) and include_transaction:
-            self.cash_dividend_transactions.append(transaction)
+            self.cash_dividend_transactions_summaries.append(
+                CashDividendTransactionSummary(cash_dividend_transaction_id=transaction.id))
             self.cash_dividend_total += transaction.dividend.amount
 
         else:

@@ -492,7 +492,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
 
             self.assertEqual(len(data['buy_stock_transactions']), buy_stock_transactions_quantity)
             self.assertEqual(len(data['sell_stock_transactions_summaries']), sell_stock_transactions_quantity)
-            self.assertEqual(len(data['cash_dividend_transactions']), cash_dividend_transactions_quantity)
+            self.assertEqual(len(data['cash_dividend_transactions_summaries']), cash_dividend_transactions_quantity)
             self.assertEqual(len(data['stock_dividend_transactions']), stock_dividend_transactions_quantity)
             self.assertEqual(len(data['stock_split_transactions']), stock_split_transactions_quantity)
 
@@ -526,13 +526,15 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
         sell_related_buy_stock_transaction = response.data['stock_summaries'][0]['sell_stock_transactions_summaries'][0]['sell_related_buy_stock_transactions'][0]
 
-        sell_value = stock_sell_transaction.total_value
-        buy_value = stock_buy_transaction.total_value*quantity_ratio_to_sell
-        profit = -sell_value - buy_value
+        income = -stock_sell_transaction.total_value
+        costs = stock_buy_transaction.total_value*quantity_ratio_to_sell
 
-        self.assertEqual(round(float(sell_related_buy_stock_transaction['profit']), MONEY_DECIMAL_PLACES),
-                         round(float(profit.amount), MONEY_DECIMAL_PLACES))
-        self.assertEqual(sell_related_buy_stock_transaction['profit_currency'], str(profit.currency))
+        self.assertEqual(round(float(sell_related_buy_stock_transaction['income']), MONEY_DECIMAL_PLACES),
+                         round(float(income.amount), MONEY_DECIMAL_PLACES))
+        self.assertEqual(round(float(sell_related_buy_stock_transaction['costs']), MONEY_DECIMAL_PLACES),
+                         round(float(costs.amount), MONEY_DECIMAL_PLACES))
+        self.assertEqual(sell_related_buy_stock_transaction['income_currency'], str(income.currency))
+        self.assertEqual(sell_related_buy_stock_transaction['costs_currency'], str(costs.currency))
 
     def test_create_stocks_transactions_summary(self):
         date_from, date_to = self.faker.date_tuple()

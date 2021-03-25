@@ -8,7 +8,7 @@ from apps.stocks.markets.models import CompanyStock
 from apps.stocks.markets.serializers import CompanyStockSerializer
 from apps.stocks.transactions.models import StockTransaction, CashDividendTransaction, StockDividendTransaction, \
     StockSplitTransaction, UserBroker, SellStockTransactionSummary, UserBrokerStockSummary, StockSummary, \
-    SellRelatedStockDividendTransaction, SellRelatedBuyStockTransaction
+    SellRelatedStockDividendTransaction, SellRelatedBuyStockTransaction, CashDividendTransactionSummary
 from apps.stocks.transactions.utils.utils import get_user_related_stock_split_transactions, sorted_transactions
 from main.models import User
 from main.serializers.base import BaseModelSerializer
@@ -239,8 +239,10 @@ class StockSplitTransactionSerializer(BaseModelSerializer):
 
 class SellRelatedBuyStockTransactionSerializer(BaseModelSerializer):
     buy_stock_transaction = StockTransactionSerializer()
-    profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
-    profit_currency = serializers.CharField(read_only=True, allow_null=True)
+    costs = MoneyField(max_digits=14, decimal_places=4)
+    costs_currency = serializers.CharField(read_only=True)
+    income = MoneyField(max_digits=14, decimal_places=4)
+    income_currency = serializers.CharField(read_only=True)
 
     class Meta:
         model = SellRelatedBuyStockTransaction
@@ -248,15 +250,19 @@ class SellRelatedBuyStockTransactionSerializer(BaseModelSerializer):
             'buy_stock_transaction',
             'sold_quantity',
             'origin_quantity_sold_ratio',
-            'profit',
-            'profit_currency',
+            'costs',
+            'costs_currency',
+            'income',
+            'income_currency',
         ]
 
 
 class SellRelatedStockDividendTransactionSerializer(BaseModelSerializer):
     stock_dividend_transaction = StockDividendTransactionSerializer()
-    profit = MoneyField(max_digits=14, decimal_places=4, read_only=True)
-    profit_currency = serializers.CharField(read_only=True, allow_null=True)
+    costs = MoneyField(max_digits=14, decimal_places=4)
+    costs_currency = serializers.CharField(read_only=True)
+    income = MoneyField(max_digits=14, decimal_places=4)
+    income_currency = serializers.CharField(read_only=True)
 
     class Meta:
         model = SellRelatedStockDividendTransaction
@@ -264,8 +270,10 @@ class SellRelatedStockDividendTransactionSerializer(BaseModelSerializer):
             'stock_dividend_transaction',
             'sold_quantity',
             'origin_quantity_sold_ratio',
-            'profit',
-            'profit_currency',
+            'costs',
+            'costs_currency',
+            'income',
+            'income_currency',
         ]
 
 
@@ -291,13 +299,27 @@ class SellStockTransactionSummarySerializer(BaseModelSerializer):
         ]
 
 
+class CashDividendTransactionSummarySerializer(BaseModelSerializer):
+    cash_dividend_transaction = CashDividendTransactionSerializer()
+    income = MoneyField(max_digits=14, decimal_places=4)
+    income_currency = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = CashDividendTransactionSummary
+        fields = [
+            'cash_dividend_transaction',
+            'income',
+            'income_currency',
+        ]
+
+
 class StockSummarySerializer(BaseModelSerializer):
     company_stock = CompanyStockSerializer()
     buy_stock_transactions = serializers.SerializerMethodField()
     sell_stock_transactions_summaries = serializers.SerializerMethodField()
     stock_split_transactions = serializers.SerializerMethodField()
     stock_dividend_transactions = serializers.SerializerMethodField()
-    cash_dividend_transactions = serializers.SerializerMethodField()
+    cash_dividend_transactions_summaries = serializers.SerializerMethodField()
     cash_dividend_total = serializers.SerializerMethodField()
     stock_dividend_total = serializers.SerializerMethodField()
     remaining_stock_quantity = serializers.SerializerMethodField()
@@ -306,7 +328,14 @@ class StockSummarySerializer(BaseModelSerializer):
         return StockTransactionSerializer(obj.buy_stock_transactions, many=True).data
 
     def get_sell_stock_transactions_summaries(self, obj):
-        return SellStockTransactionSummarySerializer(obj.sell_stock_transactions_summaries, many=True).data
+        sell_stock_transactions_summaries = [sell_stock_transactions_summary
+                                             for sell_stock_transactions_summary in obj.sell_stock_transactions_summaries
+                                             if sell_stock_transactions_summary.include_transaction]
+
+        sell_stock_transactions_summaries_serialized =\
+            SellStockTransactionSummarySerializer(sell_stock_transactions_summaries, many=True).data
+
+        return sell_stock_transactions_summaries_serialized
 
     def get_stock_split_transactions(self, obj):
         return StockSplitTransactionSerializer(obj.stock_split_transactions, many=True).data
@@ -314,8 +343,8 @@ class StockSummarySerializer(BaseModelSerializer):
     def get_stock_dividend_transactions(self, obj):
         return StockDividendTransactionSerializer(obj.stock_dividend_transactions, many=True).data
 
-    def get_cash_dividend_transactions(self, obj):
-        return CashDividendTransactionSerializer(obj.cash_dividend_transactions, many=True).data
+    def get_cash_dividend_transactions_summaries(self, obj):
+        return CashDividendTransactionSummarySerializer(obj.cash_dividend_transactions_summaries, many=True).data
 
     def get_cash_dividend_total(self, obj):
         return obj.cash_dividend_total
@@ -334,7 +363,7 @@ class StockSummarySerializer(BaseModelSerializer):
             'sell_stock_transactions_summaries',
             'stock_split_transactions',
             'stock_dividend_transactions',
-            'cash_dividend_transactions',
+            'cash_dividend_transactions_summaries',
             'cash_dividend_total',
             'stock_dividend_total',
             'remaining_stock_quantity'
@@ -376,6 +405,7 @@ class UserBrokerStockSummarySerializer(BaseModelSerializer):
                 user_stocks_summaries[stock_id] = StockSummary(company_stock_id=transaction.company_stock.id)
 
             include_transaction = obj.date_from.timestamp() <= transaction.timestamp() <= obj.date_to.timestamp()
+
             user_stocks_summaries[stock_id].process_transaction(transaction=transaction,
                                                                 include_transaction=include_transaction)
 
