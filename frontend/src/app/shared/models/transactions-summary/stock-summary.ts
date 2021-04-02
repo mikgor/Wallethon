@@ -1,145 +1,127 @@
 import {CompanyStock} from '../../../main/components/dashboard/models/CompanyStock';
 import {StockTransaction} from '../../../main/components/dashboard/models/StockTransaction';
 import {StockSplitTransaction} from '../../../main/components/dashboard/models/StockSplitTransaction';
-import {CashDividendTransaction} from '../../../main/components/dashboard/models/CashDividendTransaction';
 import {StockDividendTransaction} from '../../../main/components/dashboard/models/StockDividendTransaction';
-import {StockCurrencySummary} from './stock-currency-summary';
-import {ExtendedTransaction} from './extended-transaction';
-import {StockIncomeSummary} from './stock-income-summary';
-import {STOCK_FRACTION_DIGITS} from "../../../config";
-import {MoneyService} from "../../services/money.service";
+import {SellStockTransactionSummary} from './sell-stock-transaction-summary';
+import {CashDividendTransactionSummary} from './cash-dividend-transaction-summary';
 
 export class StockSummary {
   companyStock: CompanyStock;
-  stockCurrencySummaries: StockCurrencySummary[];
-  extendedIncomeTransactions: ExtendedTransaction[];
-  cashDividendTransactions: CashDividendTransaction[];
-  stockIncomeSummaries: StockIncomeSummary[];
-  buyTransactionCounter: number;
-  sellTransactionCounter: number;
-  cashDividendCounter: number;
-  stockDividendCounter: number;
-  stockSplitCounter: number;
-  boughtQuantity: number;
-  soldQuantity: number;
-  totalQuantity: number;
+  buyStockTransactions: StockTransaction[];
+  sellStockTransactionsSummaries: SellStockTransactionSummary[];
+  stockSplitTransactions: StockSplitTransaction[];
+  stockDividendTransactions: StockDividendTransaction[];
+  cashDividendTransactionsSummaries: CashDividendTransactionSummary[];
+  cashDividendTotal: number;
+  stockDividendTotal: number;
+  remainingStockQuantity: number;
 
-  constructor(companyStock: CompanyStock) {
+  constructor(companyStock: CompanyStock, buyStockTransactions: StockTransaction[],
+              sellStockTransactionsSummaries: SellStockTransactionSummary[],
+              stockSplitTransactions: StockSplitTransaction[],
+              stockDividendTransactions: StockDividendTransaction[],
+              cashDividendTransactionsSummaries: CashDividendTransactionSummary[], cashDividendTotal: number,
+              stockDividendTotal: number, remainingStockQuantity: number) {
     this.companyStock = companyStock;
-    this.stockCurrencySummaries = [];
-    this.extendedIncomeTransactions = [];
-    this.cashDividendTransactions = [];
-    this.stockIncomeSummaries = [];
-    this.buyTransactionCounter = 0;
-    this.sellTransactionCounter = 0;
-    this.cashDividendCounter = 0;
-    this.stockDividendCounter = 0;
-    this.stockSplitCounter = 0;
-    this.boughtQuantity = 0.00;
-    this.soldQuantity = 0.00;
-    this.totalQuantity = 0.00;
+    this.buyStockTransactions = buyStockTransactions;
+    this.sellStockTransactionsSummaries = sellStockTransactionsSummaries;
+    this.stockSplitTransactions = stockSplitTransactions;
+    this.stockDividendTransactions = stockDividendTransactions;
+    this.cashDividendTransactionsSummaries = cashDividendTransactionsSummaries;
+    this.cashDividendTotal = cashDividendTotal;
+    this.stockDividendTotal = stockDividendTotal;
+    this.remainingStockQuantity = remainingStockQuantity;
   }
 
-  private getStockCurrencySummary(currency: string) {
-    let stockCurrencySummary: StockCurrencySummary = this.stockCurrencySummaries.filter(x => x.currency === currency)[0];
-    if (stockCurrencySummary === undefined) {
-      const newStockCurrencySummary = new StockCurrencySummary(currency);
-      this.stockCurrencySummaries.push(newStockCurrencySummary);
-      stockCurrencySummary = newStockCurrencySummary;
-    }
-    return stockCurrencySummary;
+  public getSellStockTransactionsProfit() {
+    let profit = 0;
+    this.sellStockTransactionsSummaries.forEach(x => profit += x.getTotalProfit());
+    return profit;
   }
 
-  private getStockCurrencySummaryIndex(currency: string) {
-    return this.stockCurrencySummaries.indexOf(this.getStockCurrencySummary(currency));
+  public getCashDividendTransactionsProfit() {
+    let profit = 0;
+    this.cashDividendTransactionsSummaries.forEach(x => profit += x.getTotalProfit());
+    return profit;
   }
 
-  private updateStockCurrencySummary(stockCurrencySummary: StockCurrencySummary) {
-    this.stockCurrencySummaries[this.getStockCurrencySummaryIndex(stockCurrencySummary.currency)] = stockCurrencySummary;
+  public getTotalProfit() {
+    return this.getSellStockTransactionsProfit() + this.getCashDividendTransactionsProfit();
   }
 
-  private updateExtendedTransaction(extendedTransaction: ExtendedTransaction) {
-    this.extendedIncomeTransactions[this.extendedIncomeTransactions.indexOf(extendedTransaction)] = extendedTransaction;
+  public getSellStockTransactionsLoss() {
+    let loss = 0;
+    this.sellStockTransactionsSummaries.forEach(x => loss += x.getTotalLoss());
+    return loss;
   }
 
-  public calculateStockTransaction(stockTransaction: StockTransaction) {
-    const stockCurrencySummary: StockCurrencySummary =
-          this.getStockCurrencySummary(stockTransaction.totalValueCurrency);
-    if (stockTransaction.type === 'BUY') {
-      this.buyTransactionCounter += 1;
-      this.boughtQuantity += stockTransaction.stockQuantity;
-      this.totalQuantity += stockTransaction.stockQuantity;
-
-      this.extendedIncomeTransactions.push(new ExtendedTransaction(stockTransaction));
-    }
-    if (stockTransaction.type === 'SELL') {
-      this.sellTransactionCounter += 1;
-      this.soldQuantity += stockTransaction.stockQuantity;
-      this.totalQuantity -= stockTransaction.stockQuantity;
-
-      let transactionSoldQuantity = stockTransaction.stockQuantity;
-      const stockIncomeSummary = new StockIncomeSummary(stockTransaction);
-      this.stockIncomeSummaries.push(stockIncomeSummary);
-      const stockIncomeSummaryIndex = this.stockIncomeSummaries.indexOf(stockIncomeSummary);
-      while (transactionSoldQuantity > 0) {
-        for (const extendedTransaction of this.extendedIncomeTransactions.filter(x => x.remainingQuantity > 0)) {
-          let transactionRemainingQuantity = extendedTransaction.remainingQuantity;
-          if (transactionSoldQuantity - transactionRemainingQuantity < 0) {
-            transactionRemainingQuantity = transactionSoldQuantity;
-          }
-          transactionSoldQuantity -= transactionRemainingQuantity;
-          transactionSoldQuantity = Number(transactionSoldQuantity.toPrecision(STOCK_FRACTION_DIGITS));
-          if (transactionRemainingQuantity > 0) {
-            extendedTransaction.updateRemainingQuantity(-transactionRemainingQuantity);
-            this.updateExtendedTransaction(extendedTransaction);
-            this.stockIncomeSummaries[stockIncomeSummaryIndex].addExtendedTransaction(extendedTransaction);
-          }
-        }
-      }
-    }
-
-    this.boughtQuantity = MoneyService.formatStock(this.boughtQuantity);
-    this.soldQuantity = MoneyService.formatStock(this.soldQuantity);
-    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
-
-    stockCurrencySummary.calculateStockTransaction(stockTransaction);
-    this.updateStockCurrencySummary(stockCurrencySummary);
+  public getCashDividendTransactionsLoss() {
+    return 0;
   }
 
-  public calculateStockSplitTransaction(stockSplitTransaction: StockSplitTransaction) {
-    this.stockSplitCounter += 1;
-    this.totalQuantity =
-      (this.totalQuantity * stockSplitTransaction.exchangeRatioFor) / stockSplitTransaction.exchangeRatioFrom;
-
-    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
-    for (const extendedTransaction of this.extendedIncomeTransactions) {
-      extendedTransaction.splitTransaction(stockSplitTransaction);
-      this.updateExtendedTransaction(extendedTransaction);
-    }
+  public getTotalLoss() {
+    return this.getSellStockTransactionsLoss() + this.getCashDividendTransactionsLoss();
   }
 
-  public calculateCashDividendTransaction(cashDividendTransaction: CashDividendTransaction) {
-    this.cashDividendCounter += 1;
-    const stockCurrencySummary: StockCurrencySummary =
-          this.getStockCurrencySummary(cashDividendTransaction.totalValueCurrency);
-    stockCurrencySummary.calculateCashDividendTransaction(cashDividendTransaction);
-    this.updateStockCurrencySummary(stockCurrencySummary);
-
-    this.cashDividendTransactions.push(cashDividendTransaction);
+  public getSellStockTransactionsCosts() {
+    let costs = 0;
+    this.sellStockTransactionsSummaries.forEach(x => costs += x.getTotalCosts());
+    return costs;
   }
 
-  public calculateStockDividendTransaction(stockDividendTransaction: StockDividendTransaction) {
-    this.stockDividendCounter += 1;
-    this.totalQuantity += stockDividendTransaction.stockQuantity;
-    this.totalQuantity = MoneyService.formatStock(this.totalQuantity);
-
-    this.extendedIncomeTransactions.push(new ExtendedTransaction(stockDividendTransaction));
+  public getCashDividendTransactionsCosts() {
+    return 0;
   }
 
-  public getTotalQuantityText() {
-    return 'Total quantity of stocks (including all buy and sell transactions '
-      + '\nquantities, stock splits and stock dividends, calculated from beginning).'
-      + `\nBought quantity: ${this.boughtQuantity}`
-      + `\nSold quantity: ${this.soldQuantity}`;
+  public getTotalCosts() {
+    return this.getSellStockTransactionsCosts() + this.getCashDividendTransactionsCosts();
+  }
+
+  public getSellStockTransactionsIncome() {
+    let income = 0;
+    this.sellStockTransactionsSummaries.forEach(x => income += x.getTotalIncome());
+    return income;
+  }
+
+  public getCashDividendTransactionsIncome() {
+    let income = 0;
+    this.cashDividendTransactionsSummaries.forEach(x => income += x.getTotalIncome());
+    return income;
+  }
+
+  public getTotalIncome() {
+    return this.getSellStockTransactionsIncome() + this.getCashDividendTransactionsIncome();
+  }
+
+  public getBuyTransactionsCount() {
+    return this.buyStockTransactions.length;
+  }
+
+  public getSellTransactionsCount() {
+    return this.sellStockTransactionsSummaries.length;
+  }
+
+  public getSplitTransactionsCount() {
+    return this.stockSplitTransactions.length;
+  }
+
+  public getCashDividendTransactionsCount() {
+    return this.cashDividendTransactionsSummaries.length;
+  }
+
+  public getStockDividendTransactionsCount() {
+    return this.stockDividendTransactions.length;
+  }
+
+  public getTotalBoughtQuantity() {
+    let bought = 0;
+    this.buyStockTransactions.forEach(transaction => bought += transaction.stockQuantity);
+    return bought;
+  }
+
+  public getTotalSoldQuantity() {
+    let sold = 0;
+    this.sellStockTransactionsSummaries.forEach(transaction => sold += transaction.sellStockTransaction.stockQuantity);
+    return sold;
   }
 }

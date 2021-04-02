@@ -1,4 +1,18 @@
 <h1>Stocks</h1>
+<h4>Date range for summary & income and tax</h4>
+<mat-form-field appearance="fill">
+  <mat-label>Date from</mat-label>
+  <input matInput [matDatepicker]="dateFromDatepicker" [(ngModel)]="dateFrom" [value]="dateFrom">
+  <mat-datepicker-toggle matSuffix [for]="dateFromDatepicker"></mat-datepicker-toggle>
+  <mat-datepicker #dateFromDatepicker></mat-datepicker>
+</mat-form-field>
+<mat-form-field appearance="fill" style="margin-left: 10px">
+<mat-label>Date to</mat-label>
+  <input matInput [matDatepicker]="dateToDatepicker" [(ngModel)]="dateTo" [value]="dateTo">
+  <mat-datepicker-toggle matSuffix [for]="dateToDatepicker"></mat-datepicker-toggle>
+  <mat-datepicker #dateToDatepicker></mat-datepicker>
+</mat-form-field>
+<button mat-stroked-button (click)="dateRangeChanged()" style="margin-left: 10px">Filter</button>
 <div *ngIf="!dataLoaded">
   <mat-card>
     <mat-card-content>
@@ -9,104 +23,117 @@
 </div>
 <span *ngIf="dataLoaded">
   <h3>Summary</h3>
-  <span *ngFor="let summary of summaries;">
+  <span *ngFor="let summary of userBrokerStockSummaries;">
     <div class="summary">
-      <div class="summary-broker">{{summary.broker.name}}</div>
+      <div class="summary-broker">{{summary.userBroker.name}}</div>
       <span *ngFor="let stockSummary of summary.stockSummaries;">
         <div class="summary-stock">
-          <div class="summary-stock-symbol">{{stockSummary.companyStock.symbol}}</div>
+          <div class="summary-stock-symbol" title="{{stockSummary.companyStock.company.name}}">{{stockSummary.companyStock.symbol}}</div>
           <div class="summary-stock-details-container">
             <div class="summary-stock-details">
-              <div class="summary-stock-details-total-quantity" title="{{stockSummary.getTotalQuantityText()}}">
+              <div class="summary-stock-details-remaining-quantity" title="Remaining quantity on {{dateToSelected.toLocaleString()}}">
                 <mat-icon class="blueviolet">track_changes</mat-icon>
-                {{stockSummary.totalQuantity}}
+                {{stockSummary.remainingStockQuantity}}
               </div>
-              <div>
-                <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
-                {{stockSummary.buyTransactionCounter}}
-                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
-                {{stockSummary.sellTransactionCounter}}
-                <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
-                {{stockSummary.stockSplitCounter}}
-                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
-                {{stockSummary.cashDividendCounter}}
-                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
-                {{stockSummary.stockDividendCounter}}
-              </div>
-              <span *ngFor="let stockCurrencySummary of stockSummary.stockCurrencySummaries;">
-                <div>
-                  <span title="Sum of buy transactions total values">
-                    <mat-icon class="green">account_balance</mat-icon>
-                    {{MoneyService.formatMoney(stockCurrencySummary.boughtMoney, stockCurrencySummary.currency)}}
-                  </span>
-                  <span title="Sum of sell transactions total values">
-                    <mat-icon class="red">account_balance</mat-icon>
-                    {{MoneyService.formatMoney(stockCurrencySummary.soldMoney, stockCurrencySummary.currency)}}
-                  </span>
-                  <span title="Sum of cash dividend quantities">
-                    <mat-icon class="blue">pie_chart</mat-icon>
-                    {{MoneyService.formatMoney(stockCurrencySummary.dividend, stockCurrencySummary.currency)}}
-                  </span>
-                </div>
-              </span>
             </div>
+            <div>
+                <mat-icon aria-hidden="false" aria-label="Buy" class="green" title="Buy transactions">account_balance_wallet</mat-icon>
+                {{stockSummary.getBuyTransactionsCount()}}
+                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions">attach_money</mat-icon>
+                {{stockSummary.getSellTransactionsCount()}}
+                <mat-icon aria-hidden="false" aria-label="Split" class="golden" title="Split transactions">call_split</mat-icon>
+                {{stockSummary.getSplitTransactionsCount()}}
+                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+                {{stockSummary.getCashDividendTransactionsCount()}}
+                <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
+                {{stockSummary.getStockDividendTransactionsCount()}}
+              </div>
           </div>
         </div>
       </span>
     </div>
   </span>
   <h3>Income and tax</h3>
-  <button mat-raised-button color="primary" (click)="showIncomeAndTaxData()">Show income and tax</button>
+  <mat-form-field>
+    <mat-label>Tax rate</mat-label>
+    <input matInput type="number" [(ngModel)]="taxRate" [min]="0.01" [max]="0.99">
+  </mat-form-field>
+  <button mat-stroked-button (click)="showIncomeAndTaxData()" style="margin-left: 10px">Show income and tax</button>
   <span *ngIf="showIncomeAndTax">
     <div *ngIf="!incomeAndTaxDataLoaded">
-  <mat-card>
-    <mat-card-content>
-      <h2>Loading data</h2>
-      <mat-spinner></mat-spinner>
-    </mat-card-content>
-  </mat-card>
-</div>
-    <p>Stocks income: {{MoneyService.formatMoney(brokersTotalIncomeSummary.income(), incomeAndTaxCurrency)}}</p>
-    <p>Stocks income tax: {{MoneyService.formatMoney(brokersTotalIncomeSummary.incomeTax(), incomeAndTaxCurrency)}}</p>
-    <p>Cash dividend income: {{MoneyService.formatMoney(brokersTotalIncomeSummary.cashDividendIncome(), incomeAndTaxCurrency)}}</p>
-    <p>Cash dividend income tax: {{MoneyService.formatMoney(brokersTotalIncomeSummary.cashDividendIncomeTax(), incomeAndTaxCurrency)}}</p>
-    <span class="flex-table">
-      <span *ngFor="let broker of brokersTotalIncomeSummary.brokerIncomeSummaries">
-        <h4>{{broker.broker.name}}</h4>
-            <div class="row row-small row-right">
+      <mat-card>
+        <mat-card-content>
+          <h2>Loading data</h2>
+          <mat-spinner></mat-spinner>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <span *ngFor="let summary of userBrokerStockSummaries;">
+      <h4>{{summary.userBroker.name}}</h4>
+      <p>Total income: {{MoneyService.formatMoney(summary.getTotalIncome(), summary.currency)}}</p>
+      <p>Total costs: {{MoneyService.formatMoney(summary.getTotalCosts(), summary.currency)}}</p>
+      <p>Total profit: {{MoneyService.formatMoney(summary.getTotalProfit(), summary.currency)}}</p>
+      <p>Total loss: {{MoneyService.formatMoney(summary.getTotalLoss(), summary.currency)}}</p>
+      <p>Total tax ({{taxRate * 100}}%): {{MoneyService.formatMoney(summary.getTotalProfitTax(taxRate), summary.currency)}}</p>
+      <p>Stocks income: {{MoneyService.formatMoney(summary.getSellStockTransactionsIncome(), summary.currency)}}</p>
+      <p>Stocks costs: {{MoneyService.formatMoney(summary.getSellStockTransactionsCosts(), summary.currency)}}</p>
+      <p>Stocks profit: {{MoneyService.formatMoney(summary.getSellStockTransactionsProfit(), summary.currency)}}</p>
+      <p>Stocks loss: {{MoneyService.formatMoney(summary.getSellStockTransactionsLoss(), summary.currency)}}</p>
+      <p>Cash dividend income: {{MoneyService.formatMoney(summary.getCashDividendTransactionsIncome(), summary.currency)}}</p>
+      <p>Cash dividend costs: {{MoneyService.formatMoney(summary.getCashDividendTransactionsCosts(), summary.currency)}}</p>
+      <p>Cash dividend profit: {{MoneyService.formatMoney(summary.getCashDividendTransactionsProfit(), summary.currency)}}</p>
+      <span class="flex-table">
+        <span *ngFor="let stockSummary of summary.stockSummaries">
+          <span *ngFor="let sellStockTransactionSummary of stockSummary.sellStockTransactionsSummaries">
+            <div class="row {{sellStockTransactionSummary.sellStockTransaction.type}}-transaction">
               <div class="cell">
-                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell transactions income">attach_money</mat-icon>
-                {{MoneyService.formatMoney(broker.income(), incomeAndTaxCurrency)}}
+                <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell">attach_money</mat-icon>
               </div>
-              <div class="cell">
-              <mat-icon aria-hidden="false" aria-label="Cash dividend" class="blue" title="Cash dividend transactions income">pie_chart</mat-icon>
-                {{MoneyService.formatMoney(broker.cashDividendIncome(), incomeAndTaxCurrency)}}
-             </div>
+              <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.date.toLocaleString()}}</div>
+              <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.stockQuantity}}</div>
+              <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.companyStock.symbol}}</div>
+              <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellStockTransactionSummary.getTotalProfit() == 0 ? sellStockTransactionSummary.getTotalLoss() : sellStockTransactionSummary.getTotalProfit(), incomeAndTaxCurrency)}}</b></div>
             </div>
-            <span *ngFor="let stockIncomeSummary of broker.stockIncomeSummaries">
-              <div class="row {{stockIncomeSummary.sellTransaction.type}}-transaction">
+            <h5>Related transactions:</h5>
+            <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedBuyStockTransactions">
+              <div class="row {{sellRelatedTransaction.buyStockTransaction.type}}-transaction related-transaction">
                 <div class="cell">
-                  <mat-icon aria-hidden="false" aria-label="Sell" color="warn" title="Sell">attach_money</mat-icon>
+                  <mat-icon aria-hidden="false" aria-label="Buy" color="green" title="Buy transaction">account_balance_wallet</mat-icon>
                 </div>
-                <div class="cell">{{stockIncomeSummary.sellTransaction.date.toLocaleString()}}</div>
-                <div class="cell">{{stockIncomeSummary.sellTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Income"><b>{{MoneyService.formatMoney(stockIncomeSummary.income(), incomeAndTaxCurrency)}}</b></div>
+                <div class="cell">{{sellRelatedTransaction.buyStockTransaction.date.toLocaleString()}}</div>
+                <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
+                <div class="cell">{{sellRelatedTransaction.buyStockTransaction.companyStock.symbol}}</div>
+                <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellRelatedTransaction.getProfit() == 0 ? sellRelatedTransaction.getLoss() : sellRelatedTransaction.getProfit(), incomeAndTaxCurrency)}}</b></div>
               </div>
             </span>
-            <span *ngFor="let cashDividendIncomeTransaction of broker.cashDividendIncomeTransactions">
-              <div class="row cash-dividend-transaction">
+            <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedStockDividendTransactions">
+              <div class="row stock-dividend-transaction related-transaction">
                 <div class="cell">
-                  <mat-icon aria-hidden="false" aria-label="Cash dividend transactions" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+                  <mat-icon aria-hidden="false" aria-label="Cash dividend" class="dark-blue" title="Stock dividend transactions">pie_chart</mat-icon>
                 </div>
-                <div class="cell">{{cashDividendIncomeTransaction.cashDividendTransaction.date.toLocaleString()}}</div>
-                <div class="cell">{{cashDividendIncomeTransaction.cashDividendTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Income"><b>{{MoneyService.formatMoney(cashDividendIncomeTransaction.cashDividendIncome(), incomeAndTaxCurrency)}}</b></div>
+                <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.date.toLocaleString()}}</div>
+                <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
+                <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.companyStock.symbol}}</div>
+                <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellRelatedTransaction.getProfit() == 0 ? sellRelatedTransaction.getLoss() : sellRelatedTransaction.getProfit(), incomeAndTaxCurrency)}}</b></div>
               </div>
             </span>
+          </span>
+          <span *ngFor="let cashDividendTransactionSummary of stockSummary.cashDividendTransactionsSummaries">
+            <div class="row cash-dividend-transaction">
+              <div class="cell">
+                <mat-icon aria-hidden="false" aria-label="Cash dividend transactions" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
+              </div>
+              <div class="cell">{{cashDividendTransactionSummary.cashDividendTransaction.date.toLocaleString()}}</div>
+              <div class="cell">{{MoneyService.formatMoney(cashDividendTransactionSummary.cashDividendTransaction.dividend, cashDividendTransactionSummary.cashDividendTransaction.dividendCurrency)}}</div>
+              <div class="cell">{{cashDividendTransactionSummary.cashDividendTransaction.companyStock.symbol}}</div>
+              <div class="cell" title="Income"><b>{{MoneyService.formatMoney(cashDividendTransactionSummary.getTotalProfit(), incomeAndTaxCurrency)}}</b></div>
+            </div>
+          </span>
+        </span>
       </span>
     </span>
   </span>
-  <h3>Transactions</h3>
+  <h3>All transactions</h3>
   <button mat-raised-button class="green" routerLink="{{'/' + APP_ROUTES.addTransaction}}">New transaction</button>
   <div class="row row-small row-right">
     <div class="cell">
@@ -131,7 +158,7 @@
     </div>
   </div>
   <span class="flex-table">
-    <span *ngFor="let transaction of transactions;" [ngSwitch]="transactionsSummaryService.getTransactionType(transaction)">
+    <span *ngFor="let transaction of transactions;" [ngSwitch]="dashboardService.getTransactionType(transaction)">
     <ng-container *ngSwitchCase="'StockTransaction'">
       <div class="row {{transaction.type}}-transaction">
         <span *ngIf="transaction.type == 'BUY'; then thenBlock else elseBlock"></span>

@@ -9,6 +9,14 @@ import {RequestsService} from '../../../../shared/services/requests.service';
 import {StockDividendTransaction} from '../models/StockDividendTransaction';
 import {CashDividendTransaction} from '../models/CashDividendTransaction';
 import {UserBroker} from '../models/UserBroker';
+import {SellRelatedBuyStockTransaction} from "../../../../shared/models/transactions-summary/sell-related-buy-stock-transaction";
+import {SellRelatedStockDividendTransaction} from "../../../../shared/models/transactions-summary/sell-related-stock-dividend-transaction";
+import {SellStockTransactionSummary} from "../../../../shared/models/transactions-summary/sell-stock-transaction-summary";
+import {StockSummary} from "../../../../shared/models/transactions-summary/stock-summary";
+import {UserBrokerStockSummary} from "../../../../shared/models/transactions-summary/user-broker-stock-summary";
+import {MoneyService} from "../../../../shared/services/money.service";
+import {SellRelatedTransaction} from "../../../../shared/models/transactions-summary/sell-related-transaction";
+import {CashDividendTransactionSummary} from "../../../../shared/models/transactions-summary/cash-dividend-transaction-summary";
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +25,12 @@ export class DashboardService {
   constructor(
     private http: HttpClient,
     private requestsService: RequestsService,
+    private moneyService: MoneyService
   ) {}
+
+  public getTransactionType(transaction) {
+    return transaction.constructor.name;
+  }
 
   public getCompanies() {
     return this.requestsService.getRequest('companies/').pipe(
@@ -96,7 +109,7 @@ export class DashboardService {
   }
 
   public getStockSplitTransactions() {
-    return this.requestsService.getRequest(`stocksplittransactions/?filtered=true`).pipe(
+    return this.requestsService.getRequest(`stocksplittransactions/?related=true`).pipe(
       map((response) => {
         return this.getStockSplitTransactionsFromResponse(response);
       })
@@ -134,6 +147,7 @@ export class DashboardService {
       })
     );
   }
+
 
   public getCompanyFromResponse(response) {
     return new Company(
@@ -273,5 +287,160 @@ export class DashboardService {
       stockDividendTransactions.push(this.getStockDividendTransactionFromResponse(stockDividendTransaction));
     }
     return stockDividendTransactions;
+  }
+
+  public getSellRelatedBuyStockTransactionFromResponse(response) {
+    return new SellRelatedBuyStockTransaction(
+      this.getStockTransactionFromResponse(response.buy_stock_transaction),
+      Number(response.sold_quantity),
+      Number(response.origin_quantity_sold_ratio),
+      Number(response.costs),
+      Number(response.income),
+      response.costs_currency,
+    );
+  }
+
+  public getSellRelatedBuyStockTransactionsFromResponse(response) {
+    const sellRelatedBuyStockTransactions: SellRelatedBuyStockTransaction[] = [];
+    for (const sellRelatedBuyStockTransaction of response) {
+      sellRelatedBuyStockTransactions.push(
+        this.getSellRelatedBuyStockTransactionFromResponse(sellRelatedBuyStockTransaction));
+    }
+    return sellRelatedBuyStockTransactions;
+  }
+
+  public getSellRelatedStockDividendTransactionFromResponse(response) {
+    return new SellRelatedStockDividendTransaction(
+      this.getStockDividendTransactionFromResponse(response.stock_dividend_transaction),
+      Number(response.sold_quantity),
+      Number(response.origin_quantity_sold_ratio),
+      Number(response.costs),
+      Number(response.income),
+      response.costs_currency,
+    );
+  }
+
+  public getSellRelatedStockDividendTransactionsFromResponse(response) {
+    const sellRelatedStockDividendTransactions: SellRelatedStockDividendTransaction[] = [];
+    for (const sellRelatedStockDividendTransaction of response) {
+      sellRelatedStockDividendTransactions.push(
+        this.getSellRelatedStockDividendTransactionFromResponse(sellRelatedStockDividendTransaction));
+    }
+    return sellRelatedStockDividendTransactions;
+  }
+
+  public getSellStockTransactionSummaryFromResponse(response) {
+    return new SellStockTransactionSummary(
+      this.getStockTransactionFromResponse(response.sell_stock_transaction),
+      this.getSellRelatedBuyStockTransactionsFromResponse(response.sell_related_buy_stock_transactions),
+      this.getSellRelatedStockDividendTransactionsFromResponse(response.sell_related_stock_dividend_transactions),
+      );
+  }
+
+  public getSellStockTransactionsSummariesFromResponse(response) {
+    const sellStockTransactionSummaries: SellStockTransactionSummary[] = [];
+    for (const sellStockTransactionSummary of response) {
+      sellStockTransactionSummaries.push(
+        this.getSellStockTransactionSummaryFromResponse(sellStockTransactionSummary));
+    }
+    return sellStockTransactionSummaries;
+  }
+
+  public getCashDividendTransactionSummaryFromResponse(response) {
+    return new CashDividendTransactionSummary(
+        this.getCashDividendTransactionFromResponse(response.cash_dividend_transaction),
+      response.income);
+  }
+
+  public getCashDividendTransactionsSummariesFromResponse(response) {
+    const cashDividendTransactionSummaries: CashDividendTransactionSummary[] = [];
+    for (const cashDividendTransactionSummary of response) {
+      cashDividendTransactionSummaries.push(
+        this.getCashDividendTransactionSummaryFromResponse(cashDividendTransactionSummary));
+    }
+    return cashDividendTransactionSummaries;
+  }
+
+  public getStockSummaryFromResponse(response) {
+    return new StockSummary(
+      this.getCompanyStockFromResponse(response.company_stock),
+      this.getStockTransactionsFromResponse(response.buy_stock_transactions),
+      this.getSellStockTransactionsSummariesFromResponse(response.sell_stock_transactions_summaries),
+      this.getStockSplitTransactionsFromResponse(response.stock_split_transactions),
+      this.getStockDividendTransactionsFromResponse(response.stock_dividend_transactions),
+      this.getCashDividendTransactionsSummariesFromResponse(response.cash_dividend_transactions_summaries),
+      response.cash_dividend_total,
+      response.stock_dividend_total,
+      response.remaining_stock_quantity,
+      );
+  }
+
+  public getStockSummariesFromResponse(response) {
+    const stockSummaries: StockSummary[] = [];
+    for (const stockSummary of response) {
+      stockSummaries.push(this.getStockSummaryFromResponse(stockSummary));
+    }
+    return stockSummaries;
+  }
+
+  public getUserBrokerStockSummaryFromResponse(response) {
+    return new UserBrokerStockSummary(
+      response.uuid,
+      new Date(response.date_from),
+      new Date(response.date_to),
+      this.getUserBrokerFromResponse(response.user_broker),
+      response.currency,
+      this.getStockSummariesFromResponse(response.stock_summaries)
+      );
+  }
+
+  public getTransactionsSummary(brokerId, dateFrom, dateTo) {
+    const data = {
+      date_from: dateFrom,
+      date_to: dateTo,
+      user_broker_id: brokerId,
+      currency: 'PLN'
+    };
+    return this.requestsService.postRequest('transactionssummary/', data).pipe(
+      map((response) => {
+        return this.getUserBrokerStockSummaryFromResponse(response);
+      })
+    );
+  }
+
+  private calculateSellRelatedTransaction(sellRelatedTransactions: SellRelatedTransaction[],
+                                          sellStockTransaction: StockTransaction, currency: string) {
+    for (const sellRelatedTransaction of sellRelatedTransactions) {
+      if (!sellRelatedTransaction.currencyEquals(currency)) {
+        const income = sellRelatedTransaction.soldQuantity * sellStockTransaction.perStockPrice;
+        const costs = sellRelatedTransaction.getAdditionalCosts(sellStockTransaction);
+        this.moneyService.getExchangedValue(income, sellStockTransaction.date,
+          sellStockTransaction.totalValueCurrency, currency).subscribe(incomeExchanged =>
+            this.moneyService.getExchangedValue(costs, sellRelatedTransaction.getTransactionDate(),
+            sellStockTransaction.totalValueCurrency, currency).subscribe(costsExchanged =>
+            sellRelatedTransaction.setCostsAndIncome(costsExchanged, incomeExchanged))
+        );
+      }
+    }
+  }
+
+  public calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary: UserBrokerStockSummary) {
+    for (const stockSummary of userBrokerStockSummary.stockSummaries) {
+      for (const sellStockTransactionsSummary of stockSummary.sellStockTransactionsSummaries) {
+        this.calculateSellRelatedTransaction(sellStockTransactionsSummary.sellRelatedBuyStockTransactions,
+          sellStockTransactionsSummary.sellStockTransaction, userBrokerStockSummary.currency);
+        this.calculateSellRelatedTransaction(sellStockTransactionsSummary.sellRelatedStockDividendTransactions,
+          sellStockTransactionsSummary.sellStockTransaction, userBrokerStockSummary.currency);
+      }
+      for (const cashDividendTransactionsSummary of stockSummary.cashDividendTransactionsSummaries) {
+        const cashDividendTransaction = cashDividendTransactionsSummary.cashDividendTransaction;
+        if (cashDividendTransaction.totalValueCurrency !== userBrokerStockSummary.currency) {
+          this.moneyService.getExchangedValue(cashDividendTransaction.totalValue, cashDividendTransaction.date,
+            cashDividendTransaction.totalValueCurrency, userBrokerStockSummary.currency).subscribe(incomeExchanged =>
+            cashDividendTransactionsSummary.setIncome(incomeExchanged)
+          );
+        }
+      }
+    }
   }
 }

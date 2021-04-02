@@ -6,10 +6,9 @@ import {StockSplitTransaction} from './models/StockSplitTransaction';
 import {StockDividendTransaction} from './models/StockDividendTransaction';
 import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
-import {TransactionsSummaryService} from '../../../shared/services/transactions-summary.service';
-import {BrokerSummary} from '../../../shared/models/transactions-summary/broker-summary';
-import {BrokersTotalIncomeSummary} from '../../../shared/models/transactions-summary/brokers-total-income-summary';
 import { APP_ROUTES } from 'src/app/routes-config';
+import {UserBrokerStockSummary} from '../../../shared/models/transactions-summary/user-broker-stock-summary';
+import {UserBroker} from "./models/UserBroker";
 
 @Component({
   selector: 'app-dashboard',
@@ -23,22 +22,32 @@ export class DashboardComponent implements OnInit {
   stockSplitTransactions: StockSplitTransaction[];
   cashDividendTransactions: CashDividendTransaction[];
   stockDividendTransactions: StockDividendTransaction[];
+  userBrokers: UserBroker[];
   transactions = [];
-  summaries: BrokerSummary[];
-  brokersTotalIncomeSummary: BrokersTotalIncomeSummary;
   showIncomeAndTax = false;
   incomeAndTaxCurrency = 'PLN';
   dataLoaded = false;
   incomeAndTaxDataLoaded = false;
   MoneyService = MoneyService;
+  userBrokerStockSummaries: UserBrokerStockSummary[] = [];
   APP_ROUTES = APP_ROUTES;
+  taxRate = 0.19;
+  dateFrom;
+  dateTo;
+  dateFromSelected;
+  dateToSelected;
 
   constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,
-              public transactionsSummaryService: TransactionsSummaryService,
               ) { }
 
   ngOnInit(): void {
+    const previousYear = new Date().getFullYear() - 1;
+    this.dateFrom = new Date(previousYear, 0, 1, 0, 0, 0);
+    this.dateTo = new Date(previousYear, 11, 31, 23, 59, 59);
+    this.dateFromSelected = this.dateFrom;
+    this.dateToSelected = this.dateTo;
+
     this.dashboardService.getStockTransactions().subscribe(stockTransactions =>
         this.stockTransactionsLoaded(stockTransactions)
     );
@@ -50,6 +59,9 @@ export class DashboardComponent implements OnInit {
     );
     this.dashboardService.getStockDividendTransactions().subscribe(stockDividendTransactions =>
         this.stockDividendTransactionsLoaded(stockDividendTransactions)
+    );
+    this.dashboardService.getUserBrokers().subscribe(userBrokers =>
+        this.userBrokersLoaded(userBrokers)
     );
   }
 
@@ -75,14 +87,28 @@ export class DashboardComponent implements OnInit {
     this.dataOnLoad();
   }
 
+  private userBrokerStockSummaryLoaded(userBrokerStockSummary) {
+    this.userBrokerStockSummaries.push(userBrokerStockSummary);
+  }
+
+  private userBrokersLoaded(userBrokers) {
+    this.userBrokers = userBrokers;
+    for (const userBroker of this.userBrokers) {
+      this.dashboardService.getTransactionsSummary(userBroker.id, this.dateFrom, this.dateTo).
+      subscribe(transactionsSummary =>
+        this.userBrokerStockSummaryLoaded(transactionsSummary)
+      );
+    }
+    this.dataOnLoad();
+  }
+
   private dataOnLoad() {
     if (this.stockTransactions && this.stockSplitTransactions && this.cashDividendTransactions &&
-        this.stockDividendTransactions) {
+        this.stockDividendTransactions && this.userBrokerStockSummaries) {
       this.transactions = this.transactions.concat(this.stockTransactions);
       this.transactions = this.transactions.concat(this.stockSplitTransactions);
       this.transactions = this.transactions.concat(this.cashDividendTransactions);
       this.transactions = this.transactions.concat(this.stockDividendTransactions);
-      this.summaries = this.transactionsSummaryService.getSummaries(this.transactions);
       this.transactions.sort(this.dateTimeService.sortByDateDesc);
       this.dataLoaded = true;
     }
@@ -91,9 +117,31 @@ export class DashboardComponent implements OnInit {
   public showIncomeAndTaxData() {
     this.showIncomeAndTax = !this.showIncomeAndTax;
     if (this.showIncomeAndTax && !this.incomeAndTaxDataLoaded) {
-      const tax = 0.19;
-      this.brokersTotalIncomeSummary = this.transactionsSummaryService.getIncomeAndTax(this.incomeAndTaxCurrency, tax);
+      for (const userBrokerStockSummary of this.userBrokerStockSummaries) {
+        this.dashboardService.calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary);
+      }
       this.incomeAndTaxDataLoaded = true;
+    }
+  }
+
+  public dateRangeChanged() {
+    if (this.dateTo < this.dateFrom) {
+      const dateToC = this.dateTo;
+      this.dateTo = this.dateFrom;
+      this.dateFrom = dateToC;
+    }
+    this.dateFromSelected = this.dateFrom;
+    this.dateToSelected = this.dateTo;
+
+    this.showIncomeAndTax = false;
+    this.incomeAndTaxDataLoaded = false;
+    this.userBrokerStockSummaries = [];
+
+    for (const userBroker of this.userBrokers) {
+      this.dashboardService.getTransactionsSummary(userBroker.id, this.dateFrom, this.dateTo).
+        subscribe(transactionsSummary =>
+          this.userBrokerStockSummaryLoaded(transactionsSummary)
+        );
     }
   }
 }
