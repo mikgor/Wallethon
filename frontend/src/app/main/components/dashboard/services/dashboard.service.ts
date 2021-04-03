@@ -9,14 +9,14 @@ import {RequestsService} from '../../../../shared/services/requests.service';
 import {StockDividendTransaction} from '../models/StockDividendTransaction';
 import {CashDividendTransaction} from '../models/CashDividendTransaction';
 import {UserBroker} from '../models/UserBroker';
-import {SellRelatedBuyStockTransaction} from "../../../../shared/models/transactions-summary/sell-related-buy-stock-transaction";
-import {SellRelatedStockDividendTransaction} from "../../../../shared/models/transactions-summary/sell-related-stock-dividend-transaction";
-import {SellStockTransactionSummary} from "../../../../shared/models/transactions-summary/sell-stock-transaction-summary";
-import {StockSummary} from "../../../../shared/models/transactions-summary/stock-summary";
-import {UserBrokerStockSummary} from "../../../../shared/models/transactions-summary/user-broker-stock-summary";
-import {MoneyService} from "../../../../shared/services/money.service";
-import {SellRelatedTransaction} from "../../../../shared/models/transactions-summary/sell-related-transaction";
-import {CashDividendTransactionSummary} from "../../../../shared/models/transactions-summary/cash-dividend-transaction-summary";
+import {SellRelatedBuyStockTransaction} from '../../../../shared/models/transactions-summary/sell-related-buy-stock-transaction';
+import {SellRelatedStockDividendTransaction} from '../../../../shared/models/transactions-summary/sell-related-stock-dividend-transaction';
+import {SellStockTransactionSummary} from '../../../../shared/models/transactions-summary/sell-stock-transaction-summary';
+import {StockSummary} from '../../../../shared/models/transactions-summary/stock-summary';
+import {UserBrokerStockSummary} from '../../../../shared/models/transactions-summary/user-broker-stock-summary';
+import {MoneyService} from '../../../../shared/services/money.service';
+import {SellRelatedTransaction} from '../../../../shared/models/transactions-summary/sell-related-transaction';
+import {CashDividendTransactionSummary} from '../../../../shared/models/transactions-summary/cash-dividend-transaction-summary';
 
 @Injectable({
   providedIn: 'root',
@@ -294,9 +294,10 @@ export class DashboardService {
       this.getStockTransactionFromResponse(response.buy_stock_transaction),
       Number(response.sold_quantity),
       Number(response.origin_quantity_sold_ratio),
-      Number(response.costs),
-      Number(response.income),
+      response.costs,
       response.costs_currency,
+      response.income,
+      response.income_currency,
     );
   }
 
@@ -314,9 +315,10 @@ export class DashboardService {
       this.getStockDividendTransactionFromResponse(response.stock_dividend_transaction),
       Number(response.sold_quantity),
       Number(response.origin_quantity_sold_ratio),
-      Number(response.costs),
-      Number(response.income),
+      response.costs,
       response.costs_currency,
+      response.income,
+      response.income_currency,
     );
   }
 
@@ -349,7 +351,9 @@ export class DashboardService {
   public getCashDividendTransactionSummaryFromResponse(response) {
     return new CashDividendTransactionSummary(
         this.getCashDividendTransactionFromResponse(response.cash_dividend_transaction),
-      response.income);
+        response.income,
+        response.income_currency
+    );
   }
 
   public getCashDividendTransactionsSummariesFromResponse(response) {
@@ -411,13 +415,11 @@ export class DashboardService {
   private calculateSellRelatedTransaction(sellRelatedTransactions: SellRelatedTransaction[],
                                           sellStockTransaction: StockTransaction, currency: string) {
     for (const sellRelatedTransaction of sellRelatedTransactions) {
-      if (!sellRelatedTransaction.currencyEquals(currency)) {
-        const income = sellRelatedTransaction.soldQuantity * sellStockTransaction.perStockPrice;
+      if (!sellRelatedTransaction.income.currencyEquals(currency)) {
+        const income = sellStockTransaction.perStockPrice.multiply(sellRelatedTransaction.soldQuantity);
         const costs = sellRelatedTransaction.getAdditionalCosts(sellStockTransaction);
-        this.moneyService.getExchangedValue(income, sellStockTransaction.date,
-          sellStockTransaction.totalValueCurrency, currency).subscribe(incomeExchanged =>
-            this.moneyService.getExchangedValue(costs, sellRelatedTransaction.getTransactionDate(),
-            sellStockTransaction.totalValueCurrency, currency).subscribe(costsExchanged =>
+        this.moneyService.getExchangedValue(income, sellStockTransaction.date, currency).subscribe(incomeExchanged =>
+            this.moneyService.getExchangedValue(costs, sellRelatedTransaction.getTransactionDate(), currency).subscribe(costsExchanged =>
             sellRelatedTransaction.setCostsAndIncome(costsExchanged, incomeExchanged))
         );
       }
@@ -434,9 +436,9 @@ export class DashboardService {
       }
       for (const cashDividendTransactionsSummary of stockSummary.cashDividendTransactionsSummaries) {
         const cashDividendTransaction = cashDividendTransactionsSummary.cashDividendTransaction;
-        if (cashDividendTransaction.totalValueCurrency !== userBrokerStockSummary.currency) {
+        if (cashDividendTransaction.totalValue.currency !== userBrokerStockSummary.currency) {
           this.moneyService.getExchangedValue(cashDividendTransaction.totalValue, cashDividendTransaction.date,
-            cashDividendTransaction.totalValueCurrency, userBrokerStockSummary.currency).subscribe(incomeExchanged =>
+            userBrokerStockSummary.currency).subscribe(incomeExchanged =>
             cashDividendTransactionsSummary.setIncome(incomeExchanged)
           );
         }

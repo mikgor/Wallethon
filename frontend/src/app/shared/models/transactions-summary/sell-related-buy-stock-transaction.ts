@@ -5,13 +5,14 @@ export class SellRelatedBuyStockTransaction extends SellRelatedTransaction {
   buyStockTransaction: StockTransaction;
 
   public constructor(buyStockTransaction: StockTransaction, soldQuantity: number, originQuantitySoldRatio: number,
-                     costs: number, income: number, costsCurrency: string) {
-    super(soldQuantity, originQuantitySoldRatio, costs, income, costsCurrency);
+                     costs: number, costsCurrency: string, income: number, incomeCurrency: string) {
+    super(soldQuantity, originQuantitySoldRatio, costs, costsCurrency, income, incomeCurrency);
     this.buyStockTransaction = buyStockTransaction;
   }
 
   public getAdditionalCosts(sellStockTransaction: StockTransaction) {
-    return this.originQuantitySoldRatio * this.buyStockTransaction.totalValue + super.getAdditionalCosts(sellStockTransaction);
+    const valueAndCommissionsSum = this.buyStockTransaction.totalValue.sum(super.getAdditionalCosts(sellStockTransaction));
+    return valueAndCommissionsSum.multiply(this.originQuantitySoldRatio);
   }
 
   public getTransactionDate() {

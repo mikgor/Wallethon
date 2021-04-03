@@ -1,5 +1,6 @@
 import {UserBroker} from '../../../main/components/dashboard/models/UserBroker';
 import {StockSummary} from './stock-summary';
+import {Money} from "../money";
 
 export class UserBrokerStockSummary {
   id: string;
@@ -20,70 +21,69 @@ export class UserBrokerStockSummary {
   }
 
   public getSellStockTransactionsProfit() {
-    let profit = 0;
-    this.stockSummaries.forEach(x => profit += x.getSellStockTransactionsProfit());
+    let profit = new Money(0);
+    this.stockSummaries.forEach(x => profit = profit.sum(x.getSellStockTransactionsProfit()));
     return profit;
   }
 
   public getCashDividendTransactionsProfit() {
-    let profit = 0;
-    this.stockSummaries.forEach(x => profit += x.getCashDividendTransactionsProfit());
+    let profit = new Money(0);
+    this.stockSummaries.forEach(x => profit = profit.sum(x.getCashDividendTransactionsProfit()));
     return profit;
   }
 
   public getTotalProfit() {
-    return this.getSellStockTransactionsProfit() + this.getCashDividendTransactionsProfit();
+    return this.getSellStockTransactionsProfit().sum(this.getCashDividendTransactionsProfit());
   }
 
   public getSellStockTransactionsLoss() {
-    let loss = 0;
-    this.stockSummaries.forEach(x => loss += x.getSellStockTransactionsLoss());
+    let loss = new Money(0);
+    this.stockSummaries.forEach(x => loss = loss.sum(x.getSellStockTransactionsLoss()));
     return loss;
   }
-
   public getCashDividendTransactionsLoss() {
-    let loss = 0;
-    this.stockSummaries.forEach(x => loss += x.getCashDividendTransactionsLoss());
+    let loss = new Money(0);
+    this.stockSummaries.forEach(x => loss = loss.sum(x.getCashDividendTransactionsLoss()));
     return loss;
   }
 
   public getTotalLoss() {
-    return this.getSellStockTransactionsLoss() + this.getCashDividendTransactionsLoss();
+    return this.getSellStockTransactionsLoss().sum(this.getCashDividendTransactionsLoss());
   }
 
   public getSellStockTransactionsCosts() {
-    let costs = 0;
-    this.stockSummaries.forEach(x => costs += x.getSellStockTransactionsCosts());
+    let costs = new Money(0);
+    this.stockSummaries.forEach(x => costs = costs.sum(x.getSellStockTransactionsCosts()));
     return costs;
   }
 
   public getCashDividendTransactionsCosts() {
-    let costs = 0;
-    this.stockSummaries.forEach(x => costs += x.getCashDividendTransactionsCosts());
+    let costs = new Money(0);
+    this.stockSummaries.forEach(x => costs = costs.sum(x.getCashDividendTransactionsCosts()));
     return costs;
   }
 
   public getTotalCosts() {
-    return this.getSellStockTransactionsCosts() + this.getCashDividendTransactionsCosts();
+    return this.getSellStockTransactionsCosts().sum(this.getCashDividendTransactionsCosts());
   }
 
   public getSellStockTransactionsIncome() {
-    let income = 0;
-    this.stockSummaries.forEach(x => income += x.getSellStockTransactionsIncome());
+    let income = new Money(0);
+    this.stockSummaries.forEach(x => income = income.sum(x.getSellStockTransactionsIncome()));
     return income;
   }
 
   public getCashDividendTransactionsIncome() {
-    let income = 0;
-    this.stockSummaries.forEach(x => income += x.getCashDividendTransactionsIncome());
+    let income = new Money(0);
+    this.stockSummaries.forEach(x => income = income.sum(x.getCashDividendTransactionsIncome()));
     return income;
   }
 
   public getTotalIncome() {
-    return this.getSellStockTransactionsIncome() + this.getCashDividendTransactionsIncome();
+    return this.getSellStockTransactionsIncome().sum(this.getCashDividendTransactionsIncome());
   }
 
   public getTotalProfitTax(taxRate: number) {
-    return this.getTotalProfit() * taxRate;
+    return this.getTotalProfit().multiply(taxRate);
   }
 }

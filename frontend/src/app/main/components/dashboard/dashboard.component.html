@@ -70,18 +70,18 @@
     </div>
     <span *ngFor="let summary of userBrokerStockSummaries;">
       <h4>{{summary.userBroker.name}}</h4>
-      <p>Total income: {{MoneyService.formatMoney(summary.getTotalIncome(), summary.currency)}}</p>
-      <p>Total costs: {{MoneyService.formatMoney(summary.getTotalCosts(), summary.currency)}}</p>
-      <p>Total profit: {{MoneyService.formatMoney(summary.getTotalProfit(), summary.currency)}}</p>
-      <p>Total loss: {{MoneyService.formatMoney(summary.getTotalLoss(), summary.currency)}}</p>
-      <p>Total tax ({{taxRate * 100}}%): {{MoneyService.formatMoney(summary.getTotalProfitTax(taxRate), summary.currency)}}</p>
-      <p>Stocks income: {{MoneyService.formatMoney(summary.getSellStockTransactionsIncome(), summary.currency)}}</p>
-      <p>Stocks costs: {{MoneyService.formatMoney(summary.getSellStockTransactionsCosts(), summary.currency)}}</p>
-      <p>Stocks profit: {{MoneyService.formatMoney(summary.getSellStockTransactionsProfit(), summary.currency)}}</p>
-      <p>Stocks loss: {{MoneyService.formatMoney(summary.getSellStockTransactionsLoss(), summary.currency)}}</p>
-      <p>Cash dividend income: {{MoneyService.formatMoney(summary.getCashDividendTransactionsIncome(), summary.currency)}}</p>
-      <p>Cash dividend costs: {{MoneyService.formatMoney(summary.getCashDividendTransactionsCosts(), summary.currency)}}</p>
-      <p>Cash dividend profit: {{MoneyService.formatMoney(summary.getCashDividendTransactionsProfit(), summary.currency)}}</p>
+      <p>Total income: {{summary.getTotalIncome().toRepresentation()}}</p>
+      <p>Total costs: {{summary.getTotalCosts().toRepresentation()}}</p>
+      <p>Total profit: {{summary.getTotalProfit().toRepresentation()}}</p>
+      <p>Total loss: {{summary.getTotalLoss().toRepresentation()}}</p>
+      <p>Total tax ({{taxRate * 100}}%): {{summary.getTotalProfitTax(taxRate).toRepresentation()}}</p>
+      <p>Stocks income: {{summary.getSellStockTransactionsIncome().toRepresentation()}}</p>
+      <p>Stocks costs: {{summary.getSellStockTransactionsCosts().toRepresentation()}}</p>
+      <p>Stocks profit: {{summary.getSellStockTransactionsProfit().toRepresentation()}}</p>
+      <p>Stocks loss: {{summary.getSellStockTransactionsLoss().toRepresentation()}}</p>
+      <p>Cash dividend income: {{summary.getCashDividendTransactionsIncome().toRepresentation()}}</p>
+      <p>Cash dividend costs: {{summary.getCashDividendTransactionsCosts().toRepresentation()}}</p>
+      <p>Cash dividend profit: {{summary.getCashDividendTransactionsProfit().toRepresentation()}}</p>
       <span class="flex-table">
         <span *ngFor="let stockSummary of summary.stockSummaries">
           <span *ngFor="let sellStockTransactionSummary of stockSummary.sellStockTransactionsSummaries">
@@ -92,7 +92,7 @@
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.date.toLocaleString()}}</div>
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.stockQuantity}}</div>
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.companyStock.symbol}}</div>
-              <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellStockTransactionSummary.getTotalProfit() == 0 ? sellStockTransactionSummary.getTotalLoss() : sellStockTransactionSummary.getTotalProfit(), incomeAndTaxCurrency)}}</b></div>
+              <div class="cell" title="Profit"><b>{{sellStockTransactionSummary.getTotalProfitOrLoss().toRepresentation()}}</b></div>
             </div>
             <h5>Related transactions:</h5>
             <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedBuyStockTransactions">
@@ -103,7 +103,7 @@
                 <div class="cell">{{sellRelatedTransaction.buyStockTransaction.date.toLocaleString()}}</div>
                 <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
                 <div class="cell">{{sellRelatedTransaction.buyStockTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellRelatedTransaction.getProfit() == 0 ? sellRelatedTransaction.getLoss() : sellRelatedTransaction.getProfit(), incomeAndTaxCurrency)}}</b></div>
+                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getTotalProfitOrLoss().toRepresentation()}}</b></div>
               </div>
             </span>
             <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedStockDividendTransactions">
@@ -114,7 +114,7 @@
                 <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.date.toLocaleString()}}</div>
                 <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
                 <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Profit"><b>{{MoneyService.formatMoney(sellRelatedTransaction.getProfit() == 0 ? sellRelatedTransaction.getLoss() : sellRelatedTransaction.getProfit(), incomeAndTaxCurrency)}}</b></div>
+                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getTotalProfitOrLoss().toRepresentation()}}</b></div>
               </div>
             </span>
           </span>
@@ -124,9 +124,9 @@
                 <mat-icon aria-hidden="false" aria-label="Cash dividend transactions" class="blue" title="Cash dividend transactions">pie_chart</mat-icon>
               </div>
               <div class="cell">{{cashDividendTransactionSummary.cashDividendTransaction.date.toLocaleString()}}</div>
-              <div class="cell">{{MoneyService.formatMoney(cashDividendTransactionSummary.cashDividendTransaction.dividend, cashDividendTransactionSummary.cashDividendTransaction.dividendCurrency)}}</div>
+              <div class="cell">{{cashDividendTransactionSummary.cashDividendTransaction.dividend.toRepresentation()}}</div>
               <div class="cell">{{cashDividendTransactionSummary.cashDividendTransaction.companyStock.symbol}}</div>
-              <div class="cell" title="Income"><b>{{MoneyService.formatMoney(cashDividendTransactionSummary.getTotalProfit(), incomeAndTaxCurrency)}}</b></div>
+              <div class="cell" title="Income"><b>{{cashDividendTransactionSummary.getTotalProfit().toRepresentation()}}</b></div>
             </div>
           </span>
         </span>
@@ -176,10 +176,10 @@
         <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
         <div class="cell" title="Stock quantity">{{transaction.stockQuantity}}</div>
         <div class="cell" title="Price per stock">
-          {{MoneyService.formatMoney(transaction.perStockPrice, transaction.perStockPriceCurrency)}}
+          {{transaction.perStockPrice.toRepresentation()}}
         </div>
         <div class="cell" title="{{transaction.getTotalValueText()}}">
-          <b>{{MoneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+          <b>{{transaction.totalValue.toRepresentation()}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>
@@ -208,10 +208,10 @@
         <div class="cell" title="Symbol">{{transaction.companyStock.symbol}}</div>
         <div class="cell"></div>
         <div class="cell" title="Dividend">
-          {{MoneyService.formatMoney(transaction.dividend, transaction.dividendCurrency)}}
+          {{transaction.dividend.toRepresentation()}}
         </div>
         <div class="cell" title="{{transaction.getTotalValueText()}}">
-          <b>{{MoneyService.formatMoney(transaction.totalValue, transaction.totalValueCurrency)}}</b>
+          <b>{{transaction.totalValue.toRepresentation()}}</b>
         </div>
         <div class="cell" title="Broker">{{transaction.broker.name}}</div>
       </div>

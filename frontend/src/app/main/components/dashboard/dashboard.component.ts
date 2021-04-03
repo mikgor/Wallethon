@@ -8,7 +8,7 @@ import { CashDividendTransaction } from './models/CashDividendTransaction';
 import {MoneyService} from '../../../shared/services/money.service';
 import { APP_ROUTES } from 'src/app/routes-config';
 import {UserBrokerStockSummary} from '../../../shared/models/transactions-summary/user-broker-stock-summary';
-import {UserBroker} from "./models/UserBroker";
+import {UserBroker} from './models/UserBroker';
 
 @Component({
   selector: 'app-dashboard',

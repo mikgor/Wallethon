@@ -5,8 +5,8 @@ export class SellRelatedStockDividendTransaction extends SellRelatedTransaction 
   stockDividendTransaction: StockDividendTransaction;
 
   public constructor(stockDividendTransaction: StockDividendTransaction, soldQuantity: number, originQuantitySoldRatio: number,
-                     costs: number, income: number, costsCurrency: string) {
-    super(soldQuantity, originQuantitySoldRatio, costs, income, costsCurrency);
+                     costs: number, costsCurrency: string, income: number, incomeCurrency: string) {
+    super(soldQuantity, originQuantitySoldRatio, costs, costsCurrency, income, incomeCurrency);
     this.stockDividendTransaction = stockDividendTransaction;
   }
 

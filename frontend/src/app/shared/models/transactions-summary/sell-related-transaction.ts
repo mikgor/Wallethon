@@ -1,42 +1,42 @@
-import {StockTransaction} from "../../../main/components/dashboard/models/StockTransaction";
+import {StockTransaction} from '../../../main/components/dashboard/models/StockTransaction';
+import {Money} from '../money';
 
 export class SellRelatedTransaction {
   soldQuantity: number;
   originQuantitySoldRatio: number;
-  costs: number;
-  costsCurrency: string;
-  income: number;
+  costs: Money;
+  income: Money;
 
-  public constructor(soldQuantity: number, originQuantitySoldRatio: number, costs: number,
-                     income: number, costsCurrency: string) {
+  public constructor(soldQuantity: number, originQuantitySoldRatio: number, costs: number, costsCurrency: string,
+                     income: number, incomeCurrency: string) {
     this.soldQuantity = soldQuantity;
     this.originQuantitySoldRatio = originQuantitySoldRatio;
-    this.costsCurrency = costsCurrency;
-    this.costs = costs;
-    this.income = income;
+    this.costs = new Money(costs, costsCurrency);
+    this.income = new Money(income, incomeCurrency);
   }
 
-  public currencyEquals(currency: string) {
-    return currency === this.costsCurrency;
-  }
-
-  public setCostsAndIncome(costs: number, income: number) {
+  public setCostsAndIncome(costs: Money, income: Money) {
     this.costs = costs;
     this.income = income;
   }
 
   public getProfit() {
-    const profit = this.income - this.costs;
-    return profit > 0 ? profit : 0;
+    const profit = this.income.subtract(this.costs);
+    return profit.amount > 0 ? profit : new Money(0, this.income.currency);
   }
 
   public getLoss() {
-    const loss = this.income - this.costs;
-    return loss < 0 ? loss : 0;
+    const loss = this.income.subtract(this.costs);
+    return loss.amount < 0 ? loss : new Money(0, this.income.currency);
+  }
+
+  public getTotalProfitOrLoss() {
+    return this.getProfit().amount === 0 ? this.getLoss() : this.getProfit();
   }
 
   public getAdditionalCosts(sellStockTransaction: StockTransaction) {
-    return this.originQuantitySoldRatio * (sellStockTransaction.commission + sellStockTransaction.tax);
+    const commissionsSum = sellStockTransaction.commission.sum(sellStockTransaction.tax);
+    return commissionsSum.multiply(this.originQuantitySoldRatio);
   }
 
   public getTransactionDate() {

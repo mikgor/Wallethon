@@ -4,6 +4,7 @@ import {RequestsService} from './requests.service';
 import {DateTimeService} from './date-time.service';
 import {MONEY_FRACTION_DIGITS, STOCK_FRACTION_DIGITS} from '../../config';
 import {Currency} from '../models/currency';
+import {Money} from '../models/money';
 
 @Injectable({
   providedIn: 'root',
@@ -13,14 +14,6 @@ export class MoneyService {
     private requestsService: RequestsService,
     private dateTimeService: DateTimeService
   ) {}
-
-  public static formatMoney(money, currency) {
-    const formatOptions = { style: 'currency', currency, minimumFractionDigits: MONEY_FRACTION_DIGITS };
-    const userLanguage = (navigator.languages && navigator.languages.length) ? navigator.languages[0] :
-      navigator.language || 'en';
-
-    return new Intl.NumberFormat(userLanguage, formatOptions).format(money);
-  }
 
   public static formatStock(val: number) {
     return Number(val.toFixed(STOCK_FRACTION_DIGITS));
@@ -36,18 +29,18 @@ export class MoneyService {
     return date;
   }
 
-  public getExchangedValue(val: number, date: Date, currencyFrom: string, currencyTo: string) {
-    if (currencyFrom !== currencyTo) {
+  public getExchangedValue(val: Money, date: Date, currencyTo: string) {
+    if (val.currency !== currencyTo) {
       const adjustedDate = this.adjustDate(date, currencyTo);
-      return this.getExchangeRate(adjustedDate, currencyFrom, currencyTo).pipe(
+      return this.getExchangeRate(adjustedDate, val.currency, currencyTo).pipe(
         map((response) => {
-          let exchangedValue = response * val;
+          let exchangedValue = response * val.amount;
           let multiplier = 1;
           if (exchangedValue < 0) {
             multiplier = -1;
             exchangedValue *=  -1;
           }
-          return Number(exchangedValue.toFixed(MONEY_FRACTION_DIGITS)) * multiplier;
+          return new Money(Number(exchangedValue.toFixed(MONEY_FRACTION_DIGITS)) * multiplier, currencyTo);
         })
       );
     }

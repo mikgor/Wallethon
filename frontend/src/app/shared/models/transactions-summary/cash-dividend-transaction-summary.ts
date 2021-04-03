@@ -1,15 +1,16 @@
 import {CashDividendTransaction} from '../../../main/components/dashboard/models/CashDividendTransaction';
+import {Money} from '../money';
 
 export class CashDividendTransactionSummary {
   cashDividendTransaction: CashDividendTransaction;
-  income: number;
+  income: Money;
 
-  public constructor(cashDividendTransaction: CashDividendTransaction, income: number) {
+  public constructor(cashDividendTransaction: CashDividendTransaction, income: number, incomeCurrency: string) {
     this.cashDividendTransaction = cashDividendTransaction;
-    this.income = income;
+    this.income = new Money(income, incomeCurrency);
   }
 
-  public setIncome(income: number) {
+  public setIncome(income: Money) {
     this.income = income;
   }
 

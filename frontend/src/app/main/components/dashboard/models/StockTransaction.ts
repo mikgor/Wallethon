@@ -1,21 +1,17 @@
 import {CompanyStock} from './CompanyStock';
 import {UserBroker} from './UserBroker';
-import {MoneyService} from '../../../../shared/services/money.service';
+import {Money} from '../../../../shared/models/money';
 
 export class StockTransaction {
   id: string;
   type: string;
   companyStock: CompanyStock;
   date: Date;
-  perStockPrice: number;
-  perStockPriceCurrency: string;
+  perStockPrice: Money;
   stockQuantity: number;
-  tax: number;
-  taxCurrency: string;
-  commission: number;
-  commissionCurrency: string;
-  totalValue: number;
-  totalValueCurrency: string;
+  tax: Money;
+  commission: Money;
+  totalValue: Money;
   broker: UserBroker;
 
   constructor(id: string, type: string, companyStock: CompanyStock, date: Date, perStockPrice: number,
@@ -26,23 +22,19 @@ export class StockTransaction {
     this.type = type;
     this.companyStock = companyStock;
     this.date = date;
-    this.perStockPrice = Number(perStockPrice);
-    this.perStockPriceCurrency = perStockPriceCurrency;
+    this.perStockPrice =  new Money(perStockPrice, perStockPriceCurrency);
     this.stockQuantity = Number(stockQuantity);
-    this.tax = Number(tax);
-    this.taxCurrency = taxCurrency;
-    this.commission = Number(commission);
-    this.commissionCurrency = commissionCurrency;
-    this.totalValue = Number(totalValue);
-    this.totalValueCurrency = totalValueCurrency;
+    this.tax = new Money(tax, taxCurrency);
+    this.commission = new Money(commission, commissionCurrency);
+    this.totalValue = new Money(totalValue, totalValueCurrency);
     this.broker = broker;
   }
 
   public getTotalValueText() {
     return 'Total value (price per stock * stock quantity + tax + commissions) =\n'
-      + ` (${MoneyService.formatMoney(this.perStockPrice, this.perStockPriceCurrency)}`
+      + ` (${this.perStockPrice.toRepresentation()}`
       + ` * ${this.stockQuantity} +`
-      + ` ${MoneyService.formatMoney(this.tax, this.taxCurrency)}`
-      + ` + ${MoneyService.formatMoney(this.commission, this.commissionCurrency)})`;
+      + ` ${this.tax.toRepresentation()}`
+      + ` + ${this.commission.toRepresentation()})`;
   }
 }

@@ -4,6 +4,7 @@ import {StockSplitTransaction} from '../../../main/components/dashboard/models/S
 import {StockDividendTransaction} from '../../../main/components/dashboard/models/StockDividendTransaction';
 import {SellStockTransactionSummary} from './sell-stock-transaction-summary';
 import {CashDividendTransactionSummary} from './cash-dividend-transaction-summary';
+import {Money} from "../money";
 
 export class StockSummary {
   companyStock: CompanyStock;
@@ -34,63 +35,63 @@ export class StockSummary {
   }
 
   public getSellStockTransactionsProfit() {
-    let profit = 0;
-    this.sellStockTransactionsSummaries.forEach(x => profit += x.getTotalProfit());
+    let profit = new Money(0);
+    this.sellStockTransactionsSummaries.forEach(x => profit = profit.sum(x.getTotalProfit()));
     return profit;
   }
 
   public getCashDividendTransactionsProfit() {
-    let profit = 0;
-    this.cashDividendTransactionsSummaries.forEach(x => profit += x.getTotalProfit());
+    let profit = new Money(0);
+    this.cashDividendTransactionsSummaries.forEach(x => profit = profit.sum(x.getTotalProfit()));
     return profit;
   }
 
   public getTotalProfit() {
-    return this.getSellStockTransactionsProfit() + this.getCashDividendTransactionsProfit();
+    return this.getSellStockTransactionsProfit().sum(this.getCashDividendTransactionsProfit());
   }
 
   public getSellStockTransactionsLoss() {
-    let loss = 0;
-    this.sellStockTransactionsSummaries.forEach(x => loss += x.getTotalLoss());
+    let loss = new Money(0);
+    this.sellStockTransactionsSummaries.forEach(x => loss = loss.sum(x.getTotalLoss()));
     return loss;
   }
 
   public getCashDividendTransactionsLoss() {
-    return 0;
+    return new Money(0);
   }
 
   public getTotalLoss() {
-    return this.getSellStockTransactionsLoss() + this.getCashDividendTransactionsLoss();
+    return this.getSellStockTransactionsLoss().sum(this.getCashDividendTransactionsLoss());
   }
 
   public getSellStockTransactionsCosts() {
-    let costs = 0;
-    this.sellStockTransactionsSummaries.forEach(x => costs += x.getTotalCosts());
+    let costs = new Money(0);
+    this.sellStockTransactionsSummaries.forEach(x => costs = costs.sum(x.getTotalCosts()));
     return costs;
   }
 
   public getCashDividendTransactionsCosts() {
-    return 0;
+    return new Money(0);
   }
 
   public getTotalCosts() {
-    return this.getSellStockTransactionsCosts() + this.getCashDividendTransactionsCosts();
+    return this.getSellStockTransactionsCosts().sum(this.getCashDividendTransactionsCosts());
   }
 
   public getSellStockTransactionsIncome() {
-    let income = 0;
-    this.sellStockTransactionsSummaries.forEach(x => income += x.getTotalIncome());
+    let income = new Money(0);
+    this.sellStockTransactionsSummaries.forEach(x => income = income.sum(x.getTotalIncome()));
     return income;
   }
 
   public getCashDividendTransactionsIncome() {
-    let income = 0;
-    this.cashDividendTransactionsSummaries.forEach(x => income += x.getTotalIncome());
+    let income = new Money(0);
+    this.cashDividendTransactionsSummaries.forEach(x => income = income.sum(x.getTotalIncome()));
     return income;
   }
 
   public getTotalIncome() {
-    return this.getSellStockTransactionsIncome() + this.getCashDividendTransactionsIncome();
+    return this.getSellStockTransactionsIncome().sum(this.getCashDividendTransactionsIncome());
   }
 
   public getBuyTransactionsCount() {
