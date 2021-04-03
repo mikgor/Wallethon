@@ -83,7 +83,16 @@ export class UserBrokerStockSummary {
     return this.getSellStockTransactionsIncome().sum(this.getCashDividendTransactionsIncome());
   }
 
-  public getTotalProfitTax(taxRate: number) {
-    return this.getTotalProfit().multiply(taxRate);
+  public getSellStockTransactionsProfitTax(taxRate: number) {
+    return this.getSellStockTransactionsProfit().multiply(taxRate);
+  }
+
+  public getCashDividendTransactionsProfitTax(cashDividendTaxRate: number) {
+    return this.getCashDividendTransactionsProfit().multiply(cashDividendTaxRate);
+  }
+
+  public getTotalProfitTax(taxRate: number, cashDividendTaxRate: number) {
+    return this.getSellStockTransactionsProfitTax(taxRate)
+      .sum(this.getCashDividendTransactionsProfitTax(cashDividendTaxRate));
   }
 }

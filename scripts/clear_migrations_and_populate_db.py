@@ -1,7 +1,7 @@
 import os
 
 from scripts.make_migrations import make_migrations
-from scripts.populate_db import populate_db
+from scripts.__populate_db import populate_db
 
 
 os.chdir("..")

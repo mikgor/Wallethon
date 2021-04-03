@@ -58,6 +58,10 @@
     <mat-label>Tax rate</mat-label>
     <input matInput type="number" [(ngModel)]="taxRate" [min]="0.01" [max]="0.99">
   </mat-form-field>
+  <mat-form-field style="margin-left: 10px">
+    <mat-label>Cash dividend tax rate</mat-label>
+    <input matInput type="number" [(ngModel)]="cashDividendTaxRate" [min]="0.01" [max]="0.99">
+  </mat-form-field>
   <button mat-stroked-button (click)="showIncomeAndTaxData()" style="margin-left: 10px">Show income and tax</button>
   <span *ngIf="showIncomeAndTax">
     <div *ngIf="!incomeAndTaxDataLoaded">
@@ -70,18 +74,21 @@
     </div>
     <span *ngFor="let summary of userBrokerStockSummaries;">
       <h4>{{summary.userBroker.name}}</h4>
-      <p>Total income: {{summary.getTotalIncome().toRepresentation()}}</p>
-      <p>Total costs: {{summary.getTotalCosts().toRepresentation()}}</p>
-      <p>Total profit: {{summary.getTotalProfit().toRepresentation()}}</p>
-      <p>Total loss: {{summary.getTotalLoss().toRepresentation()}}</p>
-      <p>Total tax ({{taxRate * 100}}%): {{summary.getTotalProfitTax(taxRate).toRepresentation()}}</p>
-      <p>Stocks income: {{summary.getSellStockTransactionsIncome().toRepresentation()}}</p>
-      <p>Stocks costs: {{summary.getSellStockTransactionsCosts().toRepresentation()}}</p>
-      <p>Stocks profit: {{summary.getSellStockTransactionsProfit().toRepresentation()}}</p>
-      <p>Stocks loss: {{summary.getSellStockTransactionsLoss().toRepresentation()}}</p>
-      <p>Cash dividend income: {{summary.getCashDividendTransactionsIncome().toRepresentation()}}</p>
-      <p>Cash dividend costs: {{summary.getCashDividendTransactionsCosts().toRepresentation()}}</p>
-      <p>Cash dividend profit: {{summary.getCashDividendTransactionsProfit().toRepresentation()}}</p>
+      <p>Total income: {{summary.getTotalIncome().toRepresentation()}}
+        (Stocks: {{summary.getSellStockTransactionsIncome().toRepresentation()}},
+        Cash dividend: {{summary.getCashDividendTransactionsIncome().toRepresentation()}})</p>
+      <p>Total costs: {{summary.getTotalCosts().toRepresentation()}}
+        (Stocks: {{summary.getSellStockTransactionsCosts().toRepresentation()}},
+        Cash dividend: {{summary.getCashDividendTransactionsCosts().toRepresentation()}})</p>
+      <p>Total profit: {{summary.getTotalProfit().toRepresentation()}}
+        (Stocks: {{summary.getSellStockTransactionsProfit().toRepresentation()}},
+        Cash dividend: {{summary.getCashDividendTransactionsProfit().toRepresentation()}})</p>
+      <p>Total loss: {{summary.getTotalLoss().toRepresentation()}}
+        (Stocks: {{summary.getSellStockTransactionsLoss().toRepresentation()}})</p>
+      <p>Total tax: {{summary.getTotalProfitTax(taxRate, cashDividendTaxRate).toRepresentation()}}
+        (Stocks ({{taxRate * 100}}%): {{summary.getSellStockTransactionsProfitTax(taxRate).toRepresentation()}},
+        Cash dividend ({{cashDividendTaxRate * 100}}%):
+        {{summary.getCashDividendTransactionsProfitTax(cashDividendTaxRate).toRepresentation()}})</p>
       <span class="flex-table">
         <span *ngFor="let stockSummary of summary.stockSummaries">
           <span *ngFor="let sellStockTransactionSummary of stockSummary.sellStockTransactionsSummaries">

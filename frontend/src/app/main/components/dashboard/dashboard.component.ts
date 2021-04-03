@@ -32,6 +32,7 @@ export class DashboardComponent implements OnInit {
   userBrokerStockSummaries: UserBrokerStockSummary[] = [];
   APP_ROUTES = APP_ROUTES;
   taxRate = 0.19;
+  cashDividendTaxRate = 0.00;
   dateFrom;
   dateTo;
   dateFromSelected;
