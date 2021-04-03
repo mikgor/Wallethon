@@ -64,6 +64,14 @@ export class MoneyService {
     );
   }
 
+  public getExchangeCurrencies() {
+    return this.requestsService.getRequest(`currencies/`).pipe(
+      map((response) => {
+        return [new Currency('USD', 'USD'), new Currency('PLN', 'PLN')];
+      })
+    );
+  }
+
   public getCurrenciesFromResponse(response) {
     const currencies: Currency[] = [];
     for (const currency of response) {

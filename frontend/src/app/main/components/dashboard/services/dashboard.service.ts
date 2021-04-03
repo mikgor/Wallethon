@@ -415,30 +415,32 @@ export class DashboardService {
   private calculateSellRelatedTransaction(sellRelatedTransactions: SellRelatedTransaction[],
                                           sellStockTransaction: StockTransaction, currency: string) {
     for (const sellRelatedTransaction of sellRelatedTransactions) {
-      if (!sellRelatedTransaction.income.currencyEquals(currency)) {
-        const income = sellStockTransaction.perStockPrice.multiply(sellRelatedTransaction.soldQuantity);
-        const costs = sellRelatedTransaction.getAdditionalCosts(sellStockTransaction);
+      const income = sellStockTransaction.perStockPrice.multiply(sellRelatedTransaction.soldQuantity);
+      const costs = sellRelatedTransaction.getAdditionalCosts(sellStockTransaction);
+      if (!income.currencyEquals(currency) || !costs.currencyEquals(currency)) {
         this.moneyService.getExchangedValue(income, sellStockTransaction.date, currency).subscribe(incomeExchanged =>
             this.moneyService.getExchangedValue(costs, sellRelatedTransaction.getTransactionDate(), currency).subscribe(costsExchanged =>
             sellRelatedTransaction.setCostsAndIncome(costsExchanged, incomeExchanged))
         );
+      } else {
+        sellRelatedTransaction.setCostsAndIncome(costs, income);
       }
     }
   }
 
-  public calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary: UserBrokerStockSummary) {
+  public calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary: UserBrokerStockSummary, currency: string) {
     for (const stockSummary of userBrokerStockSummary.stockSummaries) {
       for (const sellStockTransactionsSummary of stockSummary.sellStockTransactionsSummaries) {
         this.calculateSellRelatedTransaction(sellStockTransactionsSummary.sellRelatedBuyStockTransactions,
-          sellStockTransactionsSummary.sellStockTransaction, userBrokerStockSummary.currency);
+          sellStockTransactionsSummary.sellStockTransaction, currency);
         this.calculateSellRelatedTransaction(sellStockTransactionsSummary.sellRelatedStockDividendTransactions,
-          sellStockTransactionsSummary.sellStockTransaction, userBrokerStockSummary.currency);
+          sellStockTransactionsSummary.sellStockTransaction, currency);
       }
       for (const cashDividendTransactionsSummary of stockSummary.cashDividendTransactionsSummaries) {
         const cashDividendTransaction = cashDividendTransactionsSummary.cashDividendTransaction;
-        if (cashDividendTransaction.totalValue.currency !== userBrokerStockSummary.currency) {
+        if (!cashDividendTransaction.totalValue.currencyEquals(currency)) {
           this.moneyService.getExchangedValue(cashDividendTransaction.totalValue, cashDividendTransaction.date,
-            userBrokerStockSummary.currency).subscribe(incomeExchanged =>
+            currency).subscribe(incomeExchanged =>
             cashDividendTransactionsSummary.setIncome(incomeExchanged)
           );
         }

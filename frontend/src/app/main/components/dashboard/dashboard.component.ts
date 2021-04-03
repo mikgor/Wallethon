@@ -9,6 +9,7 @@ import {MoneyService} from '../../../shared/services/money.service';
 import { APP_ROUTES } from 'src/app/routes-config';
 import {UserBrokerStockSummary} from '../../../shared/models/transactions-summary/user-broker-stock-summary';
 import {UserBroker} from './models/UserBroker';
+import {AutoCompleteFilter} from '../../../shared/models/auto-complete-filter';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,21 +26,26 @@ export class DashboardComponent implements OnInit {
   userBrokers: UserBroker[];
   transactions = [];
   showIncomeAndTax = false;
-  incomeAndTaxCurrency = 'PLN';
   dataLoaded = false;
   incomeAndTaxDataLoaded = false;
   MoneyService = MoneyService;
   userBrokerStockSummaries: UserBrokerStockSummary[] = [];
   APP_ROUTES = APP_ROUTES;
-  taxRate = 0.19;
-  cashDividendTaxRate = 0.00;
   dateFrom;
   dateTo;
+  taxRate = 0.19;
+  cashDividendTaxRate = 0.00;
+  incomeAndTaxCurrency = 'PLN';
   dateFromSelected;
   dateToSelected;
+  taxRateSelected;
+  cashDividendTaxRateSelected;
+  incomeAndTaxCurrencySelected;
+  currenciesAutoCompleteFilter: AutoCompleteFilter;
 
   constructor(public dashboardService: DashboardService,
               private dateTimeService: DateTimeService,
+              private moneyService: MoneyService,
               ) { }
 
   ngOnInit(): void {
@@ -48,6 +54,11 @@ export class DashboardComponent implements OnInit {
     this.dateTo = new Date(previousYear, 11, 31, 23, 59, 59);
     this.dateFromSelected = this.dateFrom;
     this.dateToSelected = this.dateTo;
+    this.taxRateSelected = this.taxRate;
+    this.cashDividendTaxRateSelected = this.cashDividendTaxRate;
+    this.incomeAndTaxCurrencySelected = this.incomeAndTaxCurrency;
+    this.currenciesAutoCompleteFilter = new AutoCompleteFilter('symbol', {1: 'startswith'},
+      this.moneyService.getExchangeCurrencies.bind(this.moneyService), true);
 
     this.dashboardService.getStockTransactions().subscribe(stockTransactions =>
         this.stockTransactionsLoaded(stockTransactions)
@@ -117,9 +128,17 @@ export class DashboardComponent implements OnInit {
 
   public showIncomeAndTaxData() {
     this.showIncomeAndTax = !this.showIncomeAndTax;
+    if (this.taxRateSelected !== this.taxRate || this.cashDividendTaxRateSelected !== this.cashDividendTaxRate
+        || this.incomeAndTaxCurrencySelected !== this.incomeAndTaxCurrency) {
+      this.taxRateSelected = this.taxRate;
+      this.cashDividendTaxRateSelected = this.cashDividendTaxRate;
+      this.incomeAndTaxCurrencySelected = this.incomeAndTaxCurrency;
+      this.incomeAndTaxDataLoaded = false;
+      this.showIncomeAndTax = true;
+    }
     if (this.showIncomeAndTax && !this.incomeAndTaxDataLoaded) {
       for (const userBrokerStockSummary of this.userBrokerStockSummaries) {
-        this.dashboardService.calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary);
+        this.dashboardService.calculateProfitFromUserBrokerStockSummary(userBrokerStockSummary, this.incomeAndTaxCurrency);
       }
       this.incomeAndTaxDataLoaded = true;
     }
