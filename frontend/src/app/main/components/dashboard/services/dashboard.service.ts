@@ -393,7 +393,6 @@ export class DashboardService {
       new Date(response.date_from),
       new Date(response.date_to),
       this.getUserBrokerFromResponse(response.user_broker),
-      response.currency,
       this.getStockSummariesFromResponse(response.stock_summaries)
       );
   }
@@ -402,8 +401,7 @@ export class DashboardService {
     const data = {
       date_from: dateFrom,
       date_to: dateTo,
-      user_broker_id: brokerId,
-      currency: 'PLN'
+      user_broker_id: brokerId
     };
     return this.requestsService.postRequest('transactionssummary/', data).pipe(
       map((response) => {

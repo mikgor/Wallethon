@@ -475,7 +475,6 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
         self.assertEqual(response.data['date_from'], formatted_date(request_data['date_from']))
         self.assertEqual(response.data['date_to'], formatted_date(request_data['date_to']))
         self.assertEqual(response.data['user_broker']['uuid'], request_data['user_broker_id'])
-        self.assertEqual(response.data['currency'], request_data['currency'])
 
         for data in response.data['stock_summaries']:
             company_stock_id = data['company_stock']['uuid']

@@ -421,6 +421,5 @@ class UserBrokerStockSummarySerializer(BaseModelSerializer):
             'date_to',
             'user_broker',
             'user_broker_id',
-            'currency',
             'stock_summaries'
         ]

@@ -348,7 +348,6 @@ class UserBrokerStockSummary(BaseModel):
     date_from = models.DateTimeField()
     date_to = models.DateTimeField()
     user_broker = models.ForeignKey(UserBroker, models.CASCADE)
-    currency = models.CharField(max_length=5, choices=djmoney.settings.CURRENCY_CHOICES)
 
     class Meta:
         rules_permissions = {

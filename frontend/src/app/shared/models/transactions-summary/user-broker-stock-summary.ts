@@ -7,16 +7,13 @@ export class UserBrokerStockSummary {
   dateFrom: Date;
   dateTo: Date;
   userBroker: UserBroker;
-  currency: string;
   stockSummaries: StockSummary[];
 
-  public constructor(id: string, dateFrom: Date, dateTo: Date, userBroker: UserBroker,
-                     currency: string, stockSummaries: StockSummary[]) {
+  public constructor(id: string, dateFrom: Date, dateTo: Date, userBroker: UserBroker, stockSummaries: StockSummary[]) {
     this.id = id;
     this.dateFrom = dateFrom;
     this.dateTo = dateTo;
     this.userBroker = userBroker;
-    this.currency = currency;
     this.stockSummaries = stockSummaries;
   }
 
