@@ -95,13 +95,11 @@
       <p>Total costs: {{summary.getTotalCosts().toRepresentation()}}
         (Stocks: {{summary.getSellStockTransactionsCosts().toRepresentation()}},
         Cash dividend: {{summary.getCashDividendTransactionsCosts().toRepresentation()}})</p>
-      <p>Total profit: {{summary.getTotalProfit().toRepresentation()}}
-        (Stocks: {{summary.getSellStockTransactionsProfit().toRepresentation()}},
+      <p>Total profit: {{summary.getTotalProfitLoss().toRepresentation()}}
+        (Stocks: {{summary.getSellStockTransactionsProfitLoss().toRepresentation()}},
         Cash dividend: {{summary.getCashDividendTransactionsProfit().toRepresentation()}})</p>
-      <p>Total loss: {{summary.getTotalLoss().toRepresentation()}}
-        (Stocks: {{summary.getSellStockTransactionsLoss().toRepresentation()}})</p>
       <p>Total tax: {{summary.getTotalProfitTax(taxRate, cashDividendTaxRate).toRepresentation()}}
-        (Stocks ({{taxRate * 100}}%): {{summary.getSellStockTransactionsProfitTax(taxRate).toRepresentation()}},
+        (Stocks ({{taxRate * 100}}%): {{summary.getSellStockTransactionsProfitLossTax(taxRate).toRepresentation()}},
         Cash dividend ({{cashDividendTaxRate * 100}}%):
         {{summary.getCashDividendTransactionsProfitTax(cashDividendTaxRate).toRepresentation()}})</p>
       <span class="flex-table">
@@ -114,7 +112,7 @@
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.date.toLocaleString()}}</div>
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.stockQuantity}}</div>
               <div class="cell">{{sellStockTransactionSummary.sellStockTransaction.companyStock.symbol}}</div>
-              <div class="cell" title="Profit"><b>{{sellStockTransactionSummary.getTotalProfitOrLoss().toRepresentation()}}</b></div>
+              <div class="cell" title="Profit"><b>{{sellStockTransactionSummary.getTotalProfitLoss().toRepresentation()}}</b></div>
             </div>
             <h5>Related transactions:</h5>
             <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedBuyStockTransactions">
@@ -125,7 +123,7 @@
                 <div class="cell">{{sellRelatedTransaction.buyStockTransaction.date.toLocaleString()}}</div>
                 <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
                 <div class="cell">{{sellRelatedTransaction.buyStockTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getTotalProfitOrLoss().toRepresentation()}}</b></div>
+                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getProfitLoss().toRepresentation()}}</b></div>
               </div>
             </span>
             <span *ngFor="let sellRelatedTransaction of sellStockTransactionSummary.sellRelatedStockDividendTransactions">
@@ -136,7 +134,7 @@
                 <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.date.toLocaleString()}}</div>
                 <div class="cell">{{sellRelatedTransaction.soldQuantity}}</div>
                 <div class="cell">{{sellRelatedTransaction.stockDividendTransaction.companyStock.symbol}}</div>
-                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getTotalProfitOrLoss().toRepresentation()}}</b></div>
+                <div class="cell" title="Profit"><b>{{sellRelatedTransaction.getProfitLoss().toRepresentation()}}</b></div>
               </div>
             </span>
           </span>

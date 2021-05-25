@@ -34,10 +34,10 @@ export class StockSummary {
     this.remainingStockQuantity = remainingStockQuantity;
   }
 
-  public getSellStockTransactionsProfit() {
-    let profit = new Money(0);
-    this.sellStockTransactionsSummaries.forEach(x => profit = profit.sum(x.getTotalProfit()));
-    return profit;
+  public getSellStockTransactionsProfitLoss() {
+    let profitLoss = new Money(0);
+    this.sellStockTransactionsSummaries.forEach(x => profitLoss = profitLoss.sum(x.getTotalProfitLoss()));
+    return profitLoss;
   }
 
   public getCashDividendTransactionsProfit() {
@@ -46,22 +46,8 @@ export class StockSummary {
     return profit;
   }
 
-  public getTotalProfit() {
-    return this.getSellStockTransactionsProfit().sum(this.getCashDividendTransactionsProfit());
-  }
-
-  public getSellStockTransactionsLoss() {
-    let loss = new Money(0);
-    this.sellStockTransactionsSummaries.forEach(x => loss = loss.sum(x.getTotalLoss()));
-    return loss;
-  }
-
-  public getCashDividendTransactionsLoss() {
-    return new Money(0);
-  }
-
-  public getTotalLoss() {
-    return this.getSellStockTransactionsLoss().sum(this.getCashDividendTransactionsLoss());
+  public getTotalProfitLoss() {
+    return this.getSellStockTransactionsProfitLoss().sum(this.getCashDividendTransactionsProfit());
   }
 
   public getSellStockTransactionsCosts() {

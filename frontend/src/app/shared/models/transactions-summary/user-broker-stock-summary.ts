@@ -1,6 +1,6 @@
 import {UserBroker} from '../../../main/components/dashboard/models/UserBroker';
 import {StockSummary} from './stock-summary';
-import {Money} from "../money";
+import {Money} from '../money';
 
 export class UserBrokerStockSummary {
   id: string;
@@ -17,10 +17,10 @@ export class UserBrokerStockSummary {
     this.stockSummaries = stockSummaries;
   }
 
-  public getSellStockTransactionsProfit() {
-    let profit = new Money(0);
-    this.stockSummaries.forEach(x => profit = profit.sum(x.getSellStockTransactionsProfit()));
-    return profit;
+  public getSellStockTransactionsProfitLoss() {
+    let profitLoss = new Money(0);
+    this.stockSummaries.forEach(x => profitLoss = profitLoss.sum(x.getSellStockTransactionsProfitLoss()));
+    return profitLoss;
   }
 
   public getCashDividendTransactionsProfit() {
@@ -29,23 +29,8 @@ export class UserBrokerStockSummary {
     return profit;
   }
 
-  public getTotalProfit() {
-    return this.getSellStockTransactionsProfit().sum(this.getCashDividendTransactionsProfit());
-  }
-
-  public getSellStockTransactionsLoss() {
-    let loss = new Money(0);
-    this.stockSummaries.forEach(x => loss = loss.sum(x.getSellStockTransactionsLoss()));
-    return loss;
-  }
-  public getCashDividendTransactionsLoss() {
-    let loss = new Money(0);
-    this.stockSummaries.forEach(x => loss = loss.sum(x.getCashDividendTransactionsLoss()));
-    return loss;
-  }
-
-  public getTotalLoss() {
-    return this.getSellStockTransactionsLoss().sum(this.getCashDividendTransactionsLoss());
+  public getTotalProfitLoss() {
+    return this.getSellStockTransactionsProfitLoss().sum(this.getCashDividendTransactionsProfit());
   }
 
   public getSellStockTransactionsCosts() {
@@ -80,8 +65,8 @@ export class UserBrokerStockSummary {
     return this.getSellStockTransactionsIncome().sum(this.getCashDividendTransactionsIncome());
   }
 
-  public getSellStockTransactionsProfitTax(taxRate: number) {
-    return this.getSellStockTransactionsProfit().multiply(taxRate);
+  public getSellStockTransactionsProfitLossTax(taxRate: number) {
+    return this.getSellStockTransactionsProfitLoss().multiply(taxRate);
   }
 
   public getCashDividendTransactionsProfitTax(cashDividendTaxRate: number) {
@@ -89,7 +74,8 @@ export class UserBrokerStockSummary {
   }
 
   public getTotalProfitTax(taxRate: number, cashDividendTaxRate: number) {
-    return this.getSellStockTransactionsProfitTax(taxRate)
+    const tax = this.getSellStockTransactionsProfitLossTax(taxRate)
       .sum(this.getCashDividendTransactionsProfitTax(cashDividendTaxRate));
+    return tax.amount > 0 ? tax : new Money(0, tax.currency);
   }
 }

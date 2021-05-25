@@ -20,18 +20,9 @@ export class SellRelatedTransaction {
     this.income = income;
   }
 
-  public getProfit() {
-    const profit = this.income.subtract(this.costs);
-    return profit.amount > 0 ? profit : new Money(0, this.income.currency);
-  }
-
-  public getLoss() {
-    const loss = this.income.subtract(this.costs);
-    return loss.amount < 0 ? loss : new Money(0, this.income.currency);
-  }
-
-  public getTotalProfitOrLoss() {
-    return this.getProfit().amount === 0 ? this.getLoss() : this.getProfit();
+  public getProfitLoss() {
+    const profitLoss = this.income.subtract(this.costs);
+    return profitLoss;
   }
 
   public getAdditionalCosts(sellStockTransaction: StockTransaction) {

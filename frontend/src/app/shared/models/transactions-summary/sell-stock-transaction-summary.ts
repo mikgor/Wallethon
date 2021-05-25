@@ -16,23 +16,13 @@ export class SellStockTransactionSummary {
     this.sellRelatedStockDividendTransactions = sellRelatedStockDividendTransactions;
   }
 
-  public getTotalProfit() {
-    let profit = new Money(0);
-    this.sellRelatedBuyStockTransactions.forEach(x => profit = profit.sum(x.getProfit()));
-    this.sellRelatedStockDividendTransactions.forEach(x => profit = profit.sum(x.getProfit()));
-    return profit;
+  public getTotalProfitLoss() {
+    let profitLoss = new Money(0);
+    this.sellRelatedBuyStockTransactions.forEach(x => profitLoss = profitLoss.sum(x.getProfitLoss()));
+    this.sellRelatedStockDividendTransactions.forEach(x => profitLoss = profitLoss.sum(x.getProfitLoss()));
+    return profitLoss;
   }
 
-  public getTotalLoss() {
-    let loss = new Money(0);
-    this.sellRelatedBuyStockTransactions.forEach(x => loss = loss.sum(x.getLoss()));
-    this.sellRelatedStockDividendTransactions.forEach(x => loss = loss.sum(x.getLoss()));
-    return loss;
-  }
-
-  public getTotalProfitOrLoss() {
-    return this.getTotalProfit().amount === 0 ? this.getTotalLoss() : this.getTotalProfit();
-  }
 
   public getTotalCosts() {
     let costs = new Money(0);
