@@ -9,29 +9,31 @@ def get_transactions_tuples_from_file(file_path):
 
     with open(file_path, 'rb') as f:
         pdf = PdfFileReader(f)
-        text = ''
 
         for page_num in range(pdf.getNumPages()):
-            page = pdf.getPage(page_num)
-            text += page.extractText()
+            print(file_path, page_num)
+            page = pdf.getPage(page_num).extractText()
 
-        splitted_text = text.split('Capacity')[1].replace('$', '').split('Net Amount')[:-1]
+            if 'Capacity' not in page or 'Net Amount' not in page:
+                continue
 
-        for transaction in splitted_text:
-            line = transaction.split('\n')[::-1]
-            other_fees = Decimal(line[1])
-            transaction_fee = Decimal(line[3])
-            commission = Decimal(line[5])
-            date = datetime.datetime.strptime(line[12], '%m/%d/%Y').date()
-            per_stock_price = Decimal(line[13])
-            quantity = Decimal(line[14].replace('-', ''))
-            type = line[15].upper()
-            symbol = line[18]
+            splitted_text = page.split('Capacity')[1].replace('$', '').split('Net Amount')[:-1]
 
-            total_commission = commission + transaction_fee + other_fees
+            for transaction in splitted_text:
+                line = transaction.split('\n')[::-1]
+                other_fees = Decimal(line[1])
+                transaction_fee = Decimal(line[3])
+                commission = Decimal(line[5])
+                date = datetime.datetime.strptime(line[12], '%m/%d/%Y').date()
+                per_stock_price = Decimal(line[13])
+                quantity = Decimal(line[14].replace('-', ''))
+                type = line[15].upper()
+                symbol = line[18]
 
-            transactions_tuple_list.append(
-                (symbol, type, quantity, per_stock_price, date, total_commission))
+                total_commission = commission + transaction_fee + other_fees
+
+                transactions_tuple_list.append(
+                    (symbol, type, quantity, per_stock_price, date, total_commission))
 
     return transactions_tuple_list
 
