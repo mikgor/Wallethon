@@ -576,7 +576,7 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
                                                                       transaction_type='SELL',
                                                                       user=self.superuser)
 
-        remaining_stock_quantity = quantity_to_buy - quantity_to_sell + stock_dividend
+        remaining_stock_quantity = round(quantity_to_buy - quantity_to_sell + stock_dividend, STOCK_DECIMAL_PLACES)
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)
@@ -617,8 +617,8 @@ class TransactionsSummaryViewSetTestCase(ViewTestCase):
                                                                quantity=quantity_to_sell,
                                                                user=self.superuser)
 
-        remaining_stock_quantity =round((stock_buy_transaction.stock_quantity * exchange_ratio_for)
-                                        / exchange_ratio_from, STOCK_DECIMAL_PLACES) - quantity_to_sell
+        remaining_stock_quantity = round((stock_buy_transaction.stock_quantity * exchange_ratio_for)
+                                         / exchange_ratio_from - quantity_to_sell, STOCK_DECIMAL_PLACES)
 
         data = self.__transactions_summaries_data_helper(date_from=date_from, date_to=date_to)
         response = self.post(endpoint='/api/v1/transactionssummary/', data=data, auth_user=self.superuser)

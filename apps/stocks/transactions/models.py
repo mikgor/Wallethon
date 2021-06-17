@@ -92,7 +92,7 @@ class StockTransaction(BaseModel):
         if self.type == 'SELL':
             quantity *= -1
 
-        return stock_quantity + quantity
+        return round(stock_quantity + quantity, STOCK_DECIMAL_PLACES)
 
 
 class CashDividendTransaction(BaseModel):
@@ -154,7 +154,7 @@ class StockDividendTransaction(BaseModel):
         return self.date.timestamp()
 
     def get_stock_quantity_after_transaction(self, stock_quantity):
-        return stock_quantity + self.stock_quantity
+        return round(stock_quantity + self.stock_quantity, STOCK_DECIMAL_PLACES)
 
 
 class StockSplitTransaction(BaseModel):
@@ -340,7 +340,7 @@ class StockSummary(BaseModel):
 
         else:
             pass
-
+        
         self.modified_transactions.append(transaction)
 
 
