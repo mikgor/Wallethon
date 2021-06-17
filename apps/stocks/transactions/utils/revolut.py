@@ -11,7 +11,6 @@ def get_transactions_tuples_from_file(file_path):
         pdf = PdfFileReader(f)
 
         for page_num in range(pdf.getNumPages()):
-            print(file_path, page_num)
             page = pdf.getPage(page_num).extractText()
 
             if 'Capacity' not in page or 'Net Amount' not in page:
